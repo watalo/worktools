@@ -11,9 +11,8 @@ from openpyxl import Workbook
 import os
 
 class Stat:
-    def __init__(self, dir, output_dir):
+    def __init__(self, dir):
         self.source_path = dir
-        self.output_path = output_dir
 
     def search(self):
         opt = []
@@ -26,15 +25,15 @@ class Stat:
     def mkxlsx(self):
         wb = Workbook()
         ws = wb.active
-        ws.title = '兴发年金账单'
+        ws.title = '年金账单'
         i = 1
         for var_list in self.search():
             ws.append([i, var_list[0], var_list[1], var_list[2].split('.')[0]])
             i = i+1 
-        wb.save('兴发年金账单明细.xlsx')
+        wb.save('年金账单明细.xlsx')
 
 
 if __name__ == '__main__':
-    XF = Stat('C:/Users/watalo/Desktop/兴发年金账单', 'C:/Users/watalo/Desktop')
+    XF = Stat('C:/Users/watalo/Desktop/兴发年金账单')
     XF.mkxlsx()
     
