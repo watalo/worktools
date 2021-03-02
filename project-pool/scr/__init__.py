@@ -1,1 +1,1 @@
-__all__ = ['prod', 'proj', 'pool']
+__all__ = ['prod', 'proj', 'pool', 'conf']
