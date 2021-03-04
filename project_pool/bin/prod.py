@@ -31,7 +31,8 @@ class Loans(object):
         '''
         self.amount = amount
         self.start_time = start_time
-        self.end_time = end_revenue_rate = revenue_rate
+        self.end_time = end_time
+        self.revenue_rate = revenue_rate
         self.info = info
 
     def length(self):
