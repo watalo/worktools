@@ -59,7 +59,7 @@ class Notes(object):
     '''
     银行承兑汇票
     '''
-    def __init__(self, amount, start_time, end_time, revenue_rate, bargain):
+    def __init__(self, amount, bargain, start_time = None, end_time = None, revenue_rate = None, ):
         '''
         :description: 
         :param {amount}: 字面，如下
@@ -79,7 +79,7 @@ class Notes(object):
         return self.bargain / self.amount
 
     def info(self):
-        res = '银票总额{}，形成保证金存款{}'.format(self.amount, self.bargain)
+        res = '银承总额{}万元，形成保证金存款{}万元'.format(self.amount, self.bargain)
         return res
 
 

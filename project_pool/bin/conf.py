@@ -14,10 +14,10 @@
 import os
 
 
-db_path = os.getcwd() + r'\db\db.json'
+db_path = os.getcwd() + '/project_pool/db/db.json'
 
 def output_files_path(): 
-    output_files_path = os.getcwd() + r'\output'
+    output_files_path = os.getcwd() + 'project/output'
     if os.path.exists(output_files_path):
         return output_files_path
     else:

@@ -51,7 +51,9 @@ class Inflow(object):
         self.member = member
         self.status = '新增'
         self.scheme = []
-        
+        self.description = ''
+        self.info = ''
+
     def status_fresh(self, index):
         '''
         :description: 刷新项目状态，数据库中新增项目返回'调查中'
@@ -60,7 +62,7 @@ class Inflow(object):
         '''
         status_list = ['调查中', '评议会', '审查中', '已上会', '已获批']
         # opt = input("项目目前处于什么进度（1-'调查中'、2-'评议会'、3-'审查中'、4-'待上会'、5-'已获批）:")
-        if self.stauts == '新增':
+        if self.status == '新增':
             self.status = status_list[index]
         else:
             if index < status_list.index(self.status): 
@@ -77,14 +79,13 @@ class Inflow(object):
     def scheme_info(self):
         try:
             amount = 0
-            description = ''
             for prod_obj in self.scheme:
                 amount += prod_obj.amount
-                description = '' + prod_obj.info()
+                self.description = '，'.join([self.description, prod_obj.info()])
             res = '{time}:综合授信{am}万元，其中{desc}。'.format(
                 time = str(datetime.now())[:-7],
                 am = amount,
-                desc = description
+                desc = self.description
             )
             return res
         except:
