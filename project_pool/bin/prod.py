@@ -106,3 +106,6 @@ class Letters(object):
     def bargain_rate(self):
         return self.bargain / self.amount
 
+if __name__ == '__main__':
+    xx = Loans(1000)
+    print(xx.info())

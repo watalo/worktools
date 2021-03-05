@@ -51,8 +51,7 @@ class Inflow(object):
         self.member = member
         self.status = '新增'
         self.scheme = []
-        self.info = []
-    
+        
     def status_fresh(self, index):
         '''
         :description: 刷新项目状态，数据库中新增项目返回'调查中'
@@ -82,9 +81,9 @@ class Inflow(object):
             for prod_obj in self.scheme:
                 amount += prod_obj.amount
                 description = '' + prod_obj.info()
-            res = '{time}:综合授信{amout}万元，其中{desc}。'.format(
+            res = '{time}:综合授信{am}万元，其中{desc}。'.format(
                 time = str(datetime.now())[:-7],
-                amount = amount,
+                am = amount,
                 desc = description
             )
             return res
@@ -152,3 +151,6 @@ class Plan(object):
         :return: 更新数据库
         '''
         pass
+
+if __name__ == '__main__':
+    pass
