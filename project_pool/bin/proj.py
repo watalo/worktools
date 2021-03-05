@@ -75,8 +75,27 @@ class Inflow(object):
     def scheme_adjust(self, prod_obj_list):
         self.scheme = prod_obj_list
 
+    def scheme_info(self):
+        try:
+            amount = 0
+            description = ''
+            for prod_obj in self.scheme:
+                amount += prod_obj.amount
+                description = '' + prod_obj.info()
+            res = '{time}:综合授信{amout}万元，其中{desc}。'.format(
+                time = str(datetime.now())[:-7],
+                amount = amount,
+                desc = description
+            )
+            return res
+        except:
+            return '{}:方案待定'.format(str(datetime.now())[:-7])    
+
     def info_add(self, description):
-        self.info.append('{time}:{desc}'.format(time = str(datetime.now())[:-7], desc = description))
+        self.info.append('{time}:{desc}'.format(
+            time = str(datetime.now())[:-7], 
+            desc = description
+            ))
 
     def member_adjust(self, new_member):
         self.member = new_member

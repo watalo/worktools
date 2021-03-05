@@ -19,7 +19,7 @@ class Loans(object):
     表内贷款
     '''
     
-    def __init__(self, amount, start_time, end_time, revenue_rate, info):
+    def __init__(self, amount, start_time = None, end_time = None, revenue_rate = None):
         '''
         :description: 
         :param {amount}: 字面，如下
@@ -33,7 +33,6 @@ class Loans(object):
         self.start_time = start_time
         self.end_time = end_time
         self.revenue_rate = revenue_rate
-        self.info = info
 
     def length(self):
         return self.end_time - self.start_time
@@ -49,8 +48,12 @@ class Loans(object):
         else:
             pass
     
-    def amount_adjust(self, amount):
-        pass
+    def amount_adjust(self, new_amount):
+        self.amount = new_amount
+
+    def info(self):
+        res = '贷款额度{}万元'.format(self.amount)
+        return res
 
 class Notes(object):
     '''
@@ -63,7 +66,7 @@ class Notes(object):
         :param {start_time}:
         :param {end_time}:
         :param {revenue_rate}:
-        :param {bargaain}:
+        :param {bargain}:
         :return:
         '''
         self.amount = amount
@@ -73,7 +76,12 @@ class Notes(object):
         self.bargain = bargain
 
     def bargain_rate(self):
-        return self.bargin / self.amount
+        return self.bargain / self.amount
+
+    def info(self):
+        res = '银票总额{}，形成保证金存款{}'.format(self.amount, self.bargain)
+        return res
+
 
 class Letters(object):
     '''
@@ -96,5 +104,5 @@ class Letters(object):
         self.bargain = bargain
 
     def bargain_rate(self):
-        return self.bargin / self.amount
+        return self.bargain / self.amount
 

@@ -2,7 +2,7 @@ from . import prod
 from . import proj
 from . import conf
 from tinydb import TinyDB, Query
-from openpyxl import Workbook
+# from openpyxl import Workbook
 '''
 数据写入读取的汇总池类：
 属性：
@@ -16,8 +16,6 @@ from openpyxl import Workbook
     - 修改条目
     - 查询条目
     - 输出
-
-
 '''
 
 
@@ -43,21 +41,17 @@ class Pool(object):
             pass
         elif catagery == 'plan':
             pass
-        
 
-
-    def desert():
+    def desert(self):
         pass
 
-
-    def adjust():
+    def adjust(self):
         pass
 
-
-    def search():
+    def search(self):
         pass
 
-    def output():
+    def output(self):
         pass
     
 
