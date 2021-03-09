@@ -1,8 +1,20 @@
 sqlite3的基本操作
 
 sqlite3
-    - connection()
-      - 
-    - cursor()
-    - row()
 
+    1、创建数据库的3种方法：
+    - connect()方法
+        - connection('地址:/db/example.db') 全路径，或者带路径的地址
+        - connection('example.db') 同一目录向的数据库文件
+        - connection(:memory:) 在内存中创建数据库
+    - example:
+        con = connect('exampel.db)
+
+    2、创建游标对象cursor来执行sqlite语句
+    - cursor()方法
+      - cur = con.cursor()
+      - cur.execute('''CREATE TABLE 表的名字( 标签 数据类型, 标签2 数据类型，...))
+    - 
+    - row()方法
+
+SQL 语法
