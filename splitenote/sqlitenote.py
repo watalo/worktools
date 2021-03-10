@@ -32,4 +32,4 @@ cur.execute()
 # 明天学习sqlite语法，https://www.runoob.com/sqlite/sqlite-where-clause.html        
 
 
-    print(res)
+    print(res)http://docs.peewee-orm.com/en/latest/
