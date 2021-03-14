@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File    :   d2.py
+@File    :   d3.py
 @Time    :   2021/03/11 14:15:49
 @Author  :   watalo 
 @Version :   1.0
@@ -88,7 +88,8 @@ for user in query:
     print(user.username, user.count)
 # %%
 query = (User
-         .select(User.username, fn.COUNT(Favorite.id).alias('count'))
+         .select(User.user, fn.COUNT(Favorite.id).alias('count'))
          .join(Tweet, JOIN.LEFT_OUTER)
          .join(Favorite, JOIN.LEFT_OUTER)
          .group_by(User.username))
+    
