@@ -1,5 +1,9 @@
 # peewee学习笔记：应用实例
 
+[TOC]
+
+------
+
 这是peewee作者准备的一个网页案例，用flask快速搭建的一个网站。那后面我如果有什么应用也可以做成这样来直接使用。这个案例在`peewee/example`里。Let‘s go.
 
 ## 先装flask
