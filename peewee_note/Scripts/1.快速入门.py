@@ -32,48 +32,91 @@ class Pet(BaseModel):
 db.connect()
 db.create_tables([Person, Pet]) # create_tables()的变量是一个列表，可以一次添加多个表
 
+
+
 #%%
 from datetime import date
 
 xiaoming = Person(name='小明', birthday = date(2000, 1, 2))
 xiaoming.save()
+
+
 # %%
 xiaohong = Person(name='小红', birthday=date(2000, 3, 1))
 xiaohong.save()
+
+
+
+
 # %%
 
 xiaodai = Person.create(name='小呆', birthday=date(2001, 5, 1))
 xiaoba = Person.create(name='小八', birthday=date(2003, 5, 1))
+
+
+
+
 # %%
 xiaodai.name = '小呆呆'
 xiaodai.save()
+
+
+
+
+
 # %%
 donggua = Pet.create(owner=xiaodai, name='冬瓜', animal_type='dog')
 jianhetao = Pet.create(owner=xiaoba, name='尖核桃', animal_type='dog')
 zhuer = Pet.create(owner=xiaoming, name='猪儿', animal_type='cat')
 zhuer2 = Pet.create(owner=xiaoming, name='二猪儿', animal_type='cat')
 
+
+
+
 # %%
 zhuer.delete_instance() # he had a great life
 # Returns: 1
+
+
+
+
 # %%
 jianhetao.owner = xiaodai
 jianhetao.save()
+
+
+
+
 # %%
 # 取出单条数据
 xiaoming = Person.select().where(Person.name == '小明').get()
+
+
+
+
 # %%
 # 可以使用快捷方式，get()
 xiaodai = Person.get(Person.name == '小呆呆')
+
+
+
+
 # %%
 # 取一列数据
 for person in Person.select(): # 取出所有数据
     print(person.name)
 
+
+
+
 # %%
 query = Pet.select().where(Pet.animal_type == 'dog') #按条件取出 
 for pet in query:
     print(pet.owner.name, pet.name)
+
+
+
+
 # %%
 query = (Pet
         .select()
@@ -82,6 +125,11 @@ query = (Pet
 
 for pet in query:
     print(pet.owner.name, pet.name)
+
+
+
+
+
 # %%
 # 这段代码有问题
 # query = (Person
@@ -96,20 +144,35 @@ query = Pet.select().join(Person).where(Person.name == '小呆呆')
 for pet in query:
     print(pet.name)
 
+
+
+
+
 # %%
 query = Pet.select().where(Pet.owner == xiaodai)
 for pet in query:
     print(pet.name)
+
+
+
 
 # %%
 #排序 order_by()
 query = Pet.select().where(Pet.owner == xiaodai).order_by(Pet.name)
 for pet in query:
     print(pet.name)
+
+
+
+
 # %%
 query = Person.select().order_by(Person.birthday.desc()) #加.desc()倒序
 for person in query:                                     #不加，正序
     print(person.name, person.birthday)
+
+
+
+
 
 # %%
 # 组合筛选条件的表达
@@ -121,16 +184,29 @@ query = Person.select().where(
 for person in query:
     print(person.name, person.birthday)
 
+
+
+
 # %%
 # between()
 query = Person.select().where(Person.birthday.between(day2000,day2002))
 for person in query:
     print(person.name, person.birthday)
+
+
+
+
+
 # %%
 # 聚合与预装
 # 汇总计数
 for person in Person.select():
     print(person.name, '有', person.pets.count(), '只宠物') # N+1问题
+
+
+
+
+
 
 # %%
 # 汇总计数
@@ -143,6 +219,11 @@ query = (Person
 for i in query:
 # "pet_count" 变成查询结果i的一个属性.
     print(i.name, '有', i.pet_count, '只宠物')
+
+
+
+
+
 # %%
 # 尝试下列出所有人和他们的宠物
 query = (Person
@@ -155,6 +236,11 @@ for person in query:
         print(person.name, person.pet.name)
     else:
         print(person.name, '没有宠物')
+
+
+
+
+
 # %%
 # prefetch()方法
 query = Person.select().order_by(Person.name).prefetch(Pet)
@@ -162,6 +248,10 @@ for person in query:
     print(person.name)
     for pet in person.pets:
         print('  *', pet.name)
+
+
+
+        
 # %%
 # 使用SQL函数
 # expression 

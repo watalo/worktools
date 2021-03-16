@@ -1,4 +1,6 @@
-# Database
+# Database模块
+
+因为我暂时只用SQlite，所以其他数据库的我就不翻译了。
 
 Peewee [ Database ](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)对象表示到数据库的连接。[' Database '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)类被实例化，包含了打开数据库连接所需的所有信息，然后可以用于:
 
@@ -26,9 +28,9 @@ pg_db = PostgresqlDatabase('my_app', user='postgres', password='secret',
                            host='10.1.0.9', port=5432)
 ```
 
-Peewee provides advanced support for SQLite, Postgres and CockroachDB via database-specific extension modules. To use the extended-functionality, import the appropriate database-specific module and use the database class provided:
+Peewee通过特定的扩展模块提供了对SQLite、Postgres和CockroachDB的高级支持。要使用这些扩展功能，需要导入特定的数据模块并使用:
 
-```
+```python
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 # Use SQLite (will register a REGEXP function and set busy timeout to 3s).
@@ -48,7 +50,7 @@ from playhouse.cockroachdb import CockroachDatabase
 db = CockroachDatabase('my_app', user='root', port=26257, host='10.1.0.8')
 ```
 
-For more information on database extensions, see:
+更多扩展库信息可以看下面的文档:
 
 - [Postgresql Extensions](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#postgres-ext)
 - [SQLite Extensions](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-ext)
@@ -57,9 +59,9 @@ For more information on database extensions, see:
 - [apsw, an advanced sqlite driver](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#apsw)
 - [SqliteQ](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#sqliteq)
 
-## Initializing a Database
+## 初始化数据库
 
-The [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) initialization method expects the name of the database as the first parameter. Subsequent keyword arguments are passed to the underlying database driver when establishing the connection, allowing you to pass vendor-specific parameters easily.
+[Database ](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)初始化方法将数据库的名称作为第一个参数。在建立连接时，后续关键字参数将传递给底层数据库驱动程序。
 
 For instance, with Postgresql it is common to need to specify the `host`, `user` and `password` when creating your connection. These are not standard Peewee [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) parameters, so they will be passed directly back to `psycopg2` when creating connections:
 
@@ -85,116 +87,11 @@ Consult your database driver’s documentation for the available parameters:
 - SQLite: [sqlite3](https://docs.python.org/2/library/sqlite3.html#sqlite3.connect)
 - CockroachDB: see [psycopg2](http://initd.org/psycopg/docs/module.html#psycopg2.connect)
 
+## 使用SQLite
 
+用[' SqliteDatabase() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)连接SQLite数据库，第一个参数是数据库的文件名（或者路径），或者字符串`:memory:`可以创建内存中的数据库。在数据库文件名之后，可以指定一个列表或pragmas或任何其他任意[sqlite3参数](https://docs.python.org/2/library/sqlite3.html#sqlite3.connect)。
 
-## Using Postgresql
-
-To connect to a Postgresql database, we will use [`PostgresqlDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#PostgresqlDatabase). The first parameter is always the name of the database, and after that you can specify arbitrary [psycopg2 parameters](http://initd.org/psycopg/docs/module.html#psycopg2.connect).
-
-```
-psql_db = PostgresqlDatabase('my_database', user='postgres')
-
-class BaseModel(Model):
-    """A base model that will use our Postgresql database"""
-    class Meta:
-        database = psql_db
-
-class User(BaseModel):
-    username = CharField()
-```
-
-The [Playhouse, extensions to Peewee](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse) contains a [Postgresql extension module](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#postgres-ext) which provides many postgres-specific features such as:
-
-- [Arrays](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pgarrays)
-- [HStore](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#hstore)
-- [JSON](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pgjson)
-- [Server-side cursors](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#server-side-cursors)
-- And more!
-
-If you would like to use these awesome features, use the [`PostgresqlExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PostgresqlExtDatabase) from the `playhouse.postgres_ext` module:
-
-```
-from playhouse.postgres_ext import PostgresqlExtDatabase
-
-psql_db = PostgresqlExtDatabase('my_database', user='postgres')
-```
-
-### Isolation level
-
-As of Peewee 3.9.7, the isolation level can be specified as an initialization parameter, using the symbolic constants in `psycopg2.extensions`:
-
-```
-from psycopg2.extensions import ISOLATION_LEVEL_SERIALIZABLE
-
-db = PostgresqlDatabase('my_app', user='postgres', host='db-host',
-                        isolation_level=ISOLATION_LEVEL_SERIALIZABLE)
-```
-
-Note
-
-In older versions, you can manually set the isolation level on the underlying psycopg2 connection. This can be done in a one-off fashion:
-
-```
-db = PostgresqlDatabase(...)
-conn = db.connection()  # returns current connection.
-
-from psycopg2.extensions import ISOLATION_LEVEL_SERIALIZABLE
-conn.set_isolation_level(ISOLATION_LEVEL_SERIALIZABLE)
-```
-
-To run this every time a connection is created, subclass and implement the `_initialize_database()` hook, which is designed for this purpose:
-
-```
-class SerializedPostgresqlDatabase(PostgresqlDatabase):
-    def _initialize_connection(self, conn):
-        conn.set_isolation_level(ISOLATION_LEVEL_SERIALIZABLE)
-```
-
-
-
-## Using CockroachDB
-
-Connect to CockroachDB (CRDB) using the [`CockroachDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#CockroachDatabase) database class, defined in `playhouse.cockroachdb`:
-
-```
-from playhouse.cockroachdb import CockroachDatabase
-
-db = CockroachDatabase('my_app', user='root', port=26257, host='localhost')
-```
-
-CRDB provides client-side transaction retries, which are available using a special [`CockroachDatabase.run_transaction()`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#CockroachDatabase.run_transaction) helper-method. This method accepts a callable, which is responsible for executing any transactional statements that may need to be retried.
-
-Simplest possible example of [`run_transaction()`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#CockroachDatabase.run_transaction):
-
-```
-def create_user(email):
-    # Callable that accepts a single argument (the database instance) and
-    # which is responsible for executing the transactional SQL.
-    def callback(db_ref):
-        return User.create(email=email)
-
-    return db.run_transaction(callback, max_attempts=10)
-
-huey = create_user('huey@example.com')
-```
-
-Note
-
-The `cockroachdb.ExceededMaxAttempts` exception will be raised if the transaction cannot be committed after the given number of attempts. If the SQL is mal-formed, violates a constraint, etc., then the function will raise the exception to the caller.
-
-For more information, see:
-
-- [CRDB extension documentation](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#crdb)
-- [Arrays](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pgarrays) (postgres-specific, but applies to CRDB)
-- [JSON](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pgjson) (postgres-specific, but applies to CRDB)
-
-
-
-## Using SQLite
-
-To connect to a SQLite database, we will use [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase). The first parameter is the filename containing the database, or the string `':memory:'` to create an in-memory database. After the database filename, you can specify a list or pragmas or any other arbitrary [sqlite3 parameters](https://docs.python.org/2/library/sqlite3.html#sqlite3.connect).
-
-```
+```python
 sqlite_db = SqliteDatabase('my_app.db', pragmas={'journal_mode': 'wal'})
 
 class BaseModel(Model):
@@ -207,9 +104,9 @@ class User(BaseModel):
     # etc, etc
 ```
 
-Peewee includes a [SQLite extension module](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-ext) which provides many SQLite-specific features such as [full-text search](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-fts), [json extension support](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-json1), and much, much more. If you would like to use these awesome features, use the [`SqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SqliteExtDatabase) from the `playhouse.sqlite_ext` module:
+Peewee的[SQLite扩展模块](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html sqlite-ext)提供了许多SQLite-specific特性,比如[全文搜索](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html # sqlite-fts), [json扩展支持](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html # sqlite-json1)等等，用[`SqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SqliteExtDatabase)中的`playhouse.sqlite_ext`模块:
 
-```
+```python
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 sqlite_db = SqliteExtDatabase('my_app.db', pragmas={
@@ -218,13 +115,11 @@ sqlite_db = SqliteExtDatabase('my_app.db', pragmas={
     'synchronous': 0})  # Let the OS manage syncing.
 ```
 
+### PRAGMA声明
 
+SQLite允许通过`PRAGMA`语句配置大量参数([SQLite文档](https://www.sqlite.org/pragma.html))。这些语句通常在创建新的数据库连接时运行。要对新连接运行一个或多个`PRAGMA`语句，可以将它们指定为一个字典或包含PRAGMA名称和值的二元组列表::
 
-### PRAGMA statements
-
-SQLite allows run-time configuration of a number of parameters through `PRAGMA` statements ([SQLite documentation](https://www.sqlite.org/pragma.html)). These statements are typically run when a new database connection is created. To run one or more `PRAGMA` statements against new connections, you can specify them as a dictionary or a list of 2-tuples containing the pragma name and value:
-
-```
+```python
 db = SqliteDatabase('my_app.db', pragmas={
     'journal_mode': 'wal',
     'cache_size': 10000,  # 10000 pages, or ~40MB
@@ -232,9 +127,9 @@ db = SqliteDatabase('my_app.db', pragmas={
 })
 ```
 
-PRAGMAs may also be configured dynamically using either the [`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma) method or the special properties exposed on the [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase) object:
+动态配置`PRAGMAs`可以使用[`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma)方法或['SqliteDatabase'](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)对象的特殊属性:
 
-```
+```python
 # Set cache size to 64MB for *current connection*.
 db.pragma('cache_size', -1024 * 64)
 
@@ -252,29 +147,29 @@ print('page_size:', db.page_size)
 db.pragma('foreign_keys', 1, permanent=True)
 ```
 
-Attention
+⚠️**注意**
 
-Pragmas set using the [`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma) method, by default, do not persist after the connection is closed. To configure a pragma to be run whenever a connection is opened, specify `permanent=True`.
+默认情况下，使用[`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma)方法设置的Pragmas在连接关闭后不会持久化。要在打开连接时配置pragma，需要指定`permanent=True`。
 
-Note
+🐶**提示**
 
-A full list of PRAGMA settings, their meaning and accepted values can be found in the SQLite documentation: http://sqlite.org/pragma.html
+关于PRAGMA的完整信息: http://sqlite.org/pragma.html
 
-### Recommended Settings
+### 推荐配置
 
-The following settings are what I use with SQLite for a typical web application database.
+Peewee作者用SQLite搭建web应用数据库时的配置：
 
-| pragma                   | recommended setting | explanation                                    |
-| ------------------------ | ------------------- | ---------------------------------------------- |
-| journal_mode             | wal                 | allow readers and writers to co-exist          |
-| cache_size               | -1 * data_size_kb   | set page-cache size in KiB, e.g. -32000 = 32MB |
-| foreign_keys             | 1                   | enforce foreign-key constraints                |
-| ignore_check_constraints | 0                   | enforce CHECK constraints                      |
-| synchronous              | 0                   | let OS handle fsync (use with caution)         |
+| pragma                   | 推荐配置          | 解释                                           |
+| ------------------------ | ----------------- | ---------------------------------------------- |
+| journal_mode             | wal               | allow readers and writers to co-exist          |
+| cache_size               | -1 * data_size_kb | set page-cache size in KiB, e.g. -32000 = 32MB |
+| foreign_keys             | 1                 | enforce foreign-key constraints                |
+| ignore_check_constraints | 0                 | enforce CHECK constraints                      |
+| synchronous              | 0                 | let OS handle fsync (use with caution)         |
 
-Example database using the above options:
+案例:
 
-```
+```python
 db = SqliteDatabase('my_app.db', pragmas={
     'journal_mode': 'wal',
     'cache_size': -1 * 64000,  # 64MB
@@ -283,23 +178,21 @@ db = SqliteDatabase('my_app.db', pragmas={
     'synchronous': 0})
 ```
 
+### 用户自定义函数
 
+SQLite可以用用户自定义的Python代码进行扩展。[`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)类支持三种类型的用户定义扩展:
 
-### User-defined functions
+- 函数 —接受任意数量的参数并返回单个值。
+- Aggregate(聚合) —从多行聚合参数并返回单个值。
+- Collations() —描述如何对某个值排序。
 
-SQLite can be extended with user-defined Python code. The [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase) class supports three types of user-defined extensions:
+🐶**提示**
 
-- Functions - which take any number of parameters and return a single value.
-- Aggregates - which aggregate parameters from multiple rows and return a single value.
-- Collations - which describe how to sort some value.
+更多扩展, 可以查`playhouse.sqlite_ext` module中的[`SqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SqliteExtDatabase),  
 
-Note
+functions案例:
 
-For even more extension support, see [`SqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SqliteExtDatabase), which is in the `playhouse.sqlite_ext` module.
-
-Example user-defined function:
-
-```
+```python
 db = SqliteDatabase('analytics.db')
 
 from urllib.parse import urlparse
@@ -317,9 +210,9 @@ query = (PageView
          .order_by(fn.COUNT(PageView.id).desc()))
 ```
 
-Example user-defined aggregate:
+aggregate案例:
 
-```
+```python
 from hashlib import md5
 
 @db.aggregate('md5')
@@ -342,9 +235,9 @@ query = (FileChunk
          .order_by(FileChunk.filename, FileChunk.sequence))
 ```
 
-Example collation:
+collation案例:
 
-```
+```python
 @db.collation('ireverse')
 def collate_reverse(s1, s2):
     # Case-insensitive reverse.
@@ -358,9 +251,9 @@ Book.select().order_by(collate_reverse.collation(Book.title))
 Book.select().order_by(Book.title.asc(collation='reverse'))
 ```
 
-Example user-defined table-value function (see [`TableFunction`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#TableFunction) and [`table_function`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.table_function)) for additional details:
+ 自定义table-value 函数 ([`TableFunction`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#TableFunction) 和 [`table_function`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.table_function)):
 
-```
+```python
 from playhouse.sqlite_ext import TableFunction
 
 db = SqliteDatabase('my_app.db')
@@ -404,27 +297,25 @@ for value, in cursor:
 # 4
 ```
 
-For more information, see:
+官方文档链接:
 
 - [`SqliteDatabase.func()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.func)
 - [`SqliteDatabase.aggregate()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.aggregate)
 - [`SqliteDatabase.collation()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.collation)
 - [`SqliteDatabase.table_function()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.table_function)
-- For even more SQLite extensions, see [SQLite Extensions](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-ext)
+-  [SQLite Extensions](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-ext)
 
+### 为事务设置锁定模式
 
+SQLite事务(transactions)可以用三种方式打开:
 
-### Set locking mode for transaction
+- *Deferred* (**default**) - 仅在执行读或写操作时获取锁。第一次读创建了一个[共享锁](https://sqlite.org/lockingv3.html#locking)，第一次写创建了一个[保留锁](https://sqlite.org/lockingv3.html#locking)。因为获取锁的操作会延迟到实际需要时才进行，所以在当前线程的BEGIN操作执行之后，另一个线程或进程可能会创建一个单独的事务并写入数据库。
+- *Immediate* - 立即获得一个[保留锁](https://sqlite.org/lockingv3.html#locking)。在这种模式下，其他数据库不能写入数据库，也不能打开一个*immediate*或*exclusive*事务。但是，其他进程可以继续从数据库中读取数据。
+- *Exclusive* - 打开一个[排他锁](https://sqlite.org/lockingv3.html#locking)，阻止所有(除了read uncommitted)连接访问数据库，直到事务完成。
 
-SQLite transactions can be opened in three different modes:
+锁模式的案例:
 
-- *Deferred* (**default**) - only acquires lock when a read or write is performed. The first read creates a [shared lock](https://sqlite.org/lockingv3.html#locking) and the first write creates a [reserved lock](https://sqlite.org/lockingv3.html#locking). Because the acquisition of the lock is deferred until actually needed, it is possible that another thread or process could create a separate transaction and write to the database after the BEGIN on the current thread has executed.
-- *Immediate* - a [reserved lock](https://sqlite.org/lockingv3.html#locking) is acquired immediately. In this mode, no other database may write to the database or open an *immediate* or *exclusive* transaction. Other processes can continue to read from the database, however.
-- *Exclusive* - opens an [exclusive lock](https://sqlite.org/lockingv3.html#locking) which prevents all (except for read uncommitted) connections from accessing the database until the transaction is complete.
-
-Example specifying the locking mode:
-
-```
+```python
 db = SqliteDatabase('app.db')
 
 with db.atomic('EXCLUSIVE'):
@@ -437,22 +328,22 @@ def some_other_function():
     do_something_else()
 ```
 
-For more information, see the SQLite [locking documentation](https://sqlite.org/lockingv3.html#locking). To learn more about transactions in Peewee, see the [Managing Transactions](http://docs.peewee-orm.com/en/latest/peewee/database.html#transactions) documentation.
+更多信息，请参阅SQLite[锁定文档](https://sqlite.org/lockingv3.html#locking)。要了解更多关于Peewee中的事务，请参阅[管理事务](http://docs.peewee-orm.com/en/latest/peewee/database.html#transactions)文档。
 
-### APSW, an Advanced SQLite Driver
+### APSW（Another Python SQLite Wrapper）🤯
 
-Peewee also comes with an alternate SQLite database that uses [apsw, an advanced sqlite driver](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#apsw), an advanced Python SQLite driver. More information on APSW can be obtained on the [APSW project website](https://code.google.com/p/apsw/). APSW provides special features like:
+Peewee还附带了一个使用[APSW（一个高级SQLite驱动程序）](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#apsw)的备选SQLite数据库，这是一个高级Python SQLite驱动程序。有关APSW项目的更多信息，请访问[APSW项目网站](https://code.google.com/p/apsw/)。APSW提供特殊功能，如:
 
-- Virtual tables, virtual file-systems, Blob I/O, backups and file control.
-- Connections can be shared across threads without any additional locking.
-- Transactions are managed explicitly by your code.
-- Unicode is handled *correctly*.
-- APSW is faster that the standard library sqlite3 module.
-- Exposes pretty much the entire SQLite C API to your Python app.
+- 虚拟表、虚拟文件系统、Blob I/O、备份和文件控制。
+- 连接可以在线程之间共享，而不需要任何额外的锁。
+- 事务由你的代码显式管理。
+- Unicode处理*正确*。
+- APSW比标准库sqlite3模块更快。
+- 将几乎整个SQLite C API展示给你的Python应用程序。
 
-If you would like to use APSW, use the [`APSWDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#APSWDatabase) from the apsw_ext module:
+如果你想使用APSW，请使用apsw_ext模块中的[' APSWDatabase '](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#APSWDatabase):
 
-```
+```python
 from playhouse.apsw_ext import APSWDatabase
 
 apsw_db = APSWDatabase('my_app.db')
@@ -460,38 +351,13 @@ apsw_db = APSWDatabase('my_app.db')
 
 
 
-## Using MySQL
+## 用Database URL建立连接
 
-To connect to a MySQL database, we will use [`MySQLDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#MySQLDatabase). After the database name, you can specify arbitrary connection parameters that will be passed back to the driver (either MySQLdb or pymysql).
+playhouse模块[Database URL](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html)提供了一个辅助函数[`connect()`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html连接)。接受一个`Database URL`返回一个[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html)实例。
 
-```
-mysql_db = MySQLDatabase('my_database')
+Example code: 
 
-class BaseModel(Model):
-    """A base model that will use our MySQL database"""
-    class Meta:
-        database = mysql_db
-
-class User(BaseModel):
-    username = CharField()
-    # etc, etc
-```
-
-### Error 2006: MySQL server has gone away
-
-This particular error can occur when MySQL kills an idle database connection. This typically happens with web apps that do not explicitly manage database connections. What happens is your application starts, a connection is opened to handle the first query that executes, and, since that connection is never closed, it remains open, waiting for more queries.
-
-To fix this, make sure you are explicitly connecting to the database when you need to execute queries, and close your connection when you are done. In a web-application, this typically means you will open a connection when a request comes in, and close the connection when you return a response.
-
-See the [Framework Integration](http://docs.peewee-orm.com/en/latest/peewee/database.html#framework-integration) section for examples of configuring common web frameworks to manage database connections.
-
-## Connecting using a Database URL
-
-The playhouse module [Database URL](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url) provides a helper [`connect()`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#connect) function that accepts a database URL and returns a [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) instance.
-
-Example code:
-
-```
+```python
 import os
 
 from peewee import *
@@ -516,11 +382,11 @@ Example database URLs:
 
 
 
-## Run-time database configuration
+## 运行时数据库配置
 
-Sometimes the database connection settings are not known until run-time, when these values may be loaded from a configuration file or the environment. In these cases, you can *defer* the initialization of the database by specifying `None` as the database_name.
+有时数据库连接设置直到运行时才知道，而运行时这些值可能从配置文件或环境加载。在这些情况下，您可以通过指定' None '作为database_name来*延迟*数据库的初始化。
 
-```
+```python
 database = PostgresqlDatabase(None)  # Un-initialized database.
 
 class SomeModel(Model):
@@ -528,29 +394,27 @@ class SomeModel(Model):
         database = database
 ```
 
-If you try to connect or issue any queries while your database is uninitialized you will get an exception:
+如果你在数据库未初始化的情况下尝试连接或发出任何查询，会得到一个异常:
 
-```
+```bash
 >>> database.connect()
 Exception: Error, database not properly initialized before opening connection
 ```
 
-To initialize your database, call the [`init()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.init) method with the database name and any additional keyword arguments:
+要初始化数据库，使用数据库名称和任何其他关键字参数调用[`init() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.init)方法:
 
-```
+```python
 database_name = input('What is the name of the db? ')
 database.init(database_name, host='localhost', user='postgres')
 ```
 
-For even more control over initializing your database, see the next section, [Dynamically defining a database](http://docs.peewee-orm.com/en/latest/peewee/database.html#dynamic-db).
 
 
+## 动态定义数据库
 
-## Dynamically defining a database
+为了更好地控制数据库的定义/初始化方式，可以使用[`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy)。[`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy)对象充当占位符，然后在运行时您可以将其替换为其他对象。在下面的例子中，我们将根据应用的配置来交换数据库:
 
-For even more control over how your database is defined/initialized, you can use the [`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy) helper. [`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy) objects act as a placeholder, and then at run-time you can swap it out for a different object. In the example below, we will swap out the database depending on how the app is configured:
-
-```
+```python
 database_proxy = DatabaseProxy()  # Create a proxy for our db.
 
 class BaseModel(Model):
@@ -572,23 +436,23 @@ else:
 database_proxy.initialize(database)
 ```
 
-Warning
+**⚠️警告**
 
-Only use this method if your actual database driver varies at run-time. For instance, if your tests and local dev environment run on SQLite, but your deployed app uses PostgreSQL, you can use the [`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy) to swap out engines at run-time.
+只有在实际的数据库驱动程序在运行时发生变化时才使用此方法。例如，如果您的测试和本地开发环境运行在SQLite上，但您部署的应用程序使用PostgreSQL，您可以使用[`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy)在运行时更换引擎。
 
-However, if it is only connection values that vary at run-time, such as the path to the database file, or the database host, you should instead use [`Database.init()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.init). See [Run-time database configuration](http://docs.peewee-orm.com/en/latest/peewee/database.html#deferring-initialization) for more details.
+但是，如果只有连接值在运行时不同，比如数据库文件或数据库主机的路径，则应该使用[`database.init()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.init)。请参阅[运行时数据库配置](http://docs.peewee-orm.com/en/latest/peewee/database.html#deferring-initialization)了解更多细节。
 
-Note
+**⚠️请注意**
 
-It may be easier to avoid the use of [`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy) and instead use [`Database.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind) and related methods to set or change the database. See [Setting the database at run-time](http://docs.peewee-orm.com/en/latest/peewee/database.html#binding-database) for details.
+避免使用[`DatabaseProxy`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DatabaseProxy)，使用[`database. bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind)和相关方法来设置或更改数据库可能更容易。请参见[运行时设置数据库](http://docs.peewee-orm.com/en/latest/peewee/database.html#binding-database)。
 
 
 
-## Setting the database at run-time
+## 在运行时设置数据库
 
-We have seen three ways that databases can be configured with Peewee:
+有三种方法:
 
-```
+```python
 # The usual way:
 db = SqliteDatabase('my_app.db', pragmas={'journal_mode': 'wal'})
 
@@ -605,16 +469,16 @@ db = DatabaseProxy()
 db.initialize(SqliteDatabase('my_app.db', pragmas={'journal_mode': 'wal'}))
 ```
 
-Peewee can also set or change the database for your model classes. This technique is used by the Peewee test suite to bind test model classes to various database instances when running the tests.
+Peewee还可以为您的模型类设置或更改数据库。在运行测试时，Peewee测试套件使用这种技术将测试模型类绑定到各种数据库实例。
 
-There are two sets of complementary methods:
+有两套互补的方法:
 
-- [`Database.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind) and [`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind) - bind one or more models to a database.
-- [`Database.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind_ctx) and [`Model.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx) - which are the same as their `bind()` counterparts, but return a context-manager and are useful when the database should only be changed temporarily.
+- [`database. bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind)和[`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind) —将一个或多个模型绑定到数据库
+- [`Database.bind_ctx ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html Database.bind_ctx)和[`Model.bind_ctx ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx)——与`bind()`类似,但返回的时context-manager，在数据库只做暂时改变时有用。
 
-As an example, we’ll declare two models **without** specifying any database:
+例如，我们将声明两个模型而不指定任何数据库:
 
-```
+```python
 class User(Model):
     username = TextField()
 
@@ -624,9 +488,9 @@ class Tweet(Model):
     timestamp = TimestampField()
 ```
 
-Bind the models to a database at run-time:
+将这两个模型绑定到正在运行的数据:
 
-```
+```python
 postgres_db = PostgresqlDatabase('my_app', user='postgres')
 sqlite_db = SqliteDatabase('my_app.db')
 
@@ -644,9 +508,9 @@ with sqlite_db.bind_ctx([User, Tweet]):
 assert User._meta.database is postgres_db
 ```
 
-The [`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind) and [`Model.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx) methods work the same for binding a given model class:
+给定model时，用[`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind) 和 [`Model.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx)方法：
 
-```
+```python
 # Bind the user model to the sqlite db. By default, Peewee will also
 # bind any models that are related to User via foreign-key as well.
 User.bind(sqlite_db)
@@ -663,13 +527,13 @@ with User.bind_ctx(postgres_db, bind_backrefs=False):
 assert User._meta.database is sqlite_db
 ```
 
-The [Testing Peewee Applications](http://docs.peewee-orm.com/en/latest/peewee/database.html#testing) section of this document also contains some examples of using the `bind()` methods.
 
-## Thread-Safety and Multiple Databases
 
-If you plan to change the database at run-time in a multi-threaded application, storing the model’s database in a thread-local will prevent race-conditions. This can be accomplished with a custom model `Metadata` class:
+## 线程安全和多数据库
 
-```
+如果您计划在一个多线程应用程序运行时更改数据库，将模型的数据库存储在本地线程可以防止竞争条件(race-conditions)。可以通过自定义模型' Metadata '类来实现:
+
+```python
 import threading
 from peewee import Metadata
 
@@ -692,19 +556,21 @@ class BaseModel(Model):
         model_metadata_class = ThreadSafeDatabaseMetadata
 ```
 
-## Connection Management
 
-To open a connection to a database, use the [`Database.connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect) method:
 
-```
+## 连接管理
+
+要打开到数据库的连接，请使用[`database .connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect)方法:
+
+```python
 >>> db = SqliteDatabase(':memory:')  # In-memory SQLite database.
 >>> db.connect()
 True
 ```
 
-If we try to call `connect()` on an already-open database, we get a `OperationalError`:
+对一个已经打开的数据库调用`connect()`会抛出`OperationalError`:
 
-```
+```python
 >>> db.connect()
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
@@ -713,9 +579,9 @@ Traceback (most recent call last):
 peewee.OperationalError: Connection already opened.
 ```
 
-To prevent this exception from being raised, we can call `connect()` with an additional argument, `reuse_if_open`:
+为了防止引发此异常，可以调用'`connect()`，并添加一个参数， `reuse_if_open`:
 
-```
+```python
 >>> db.close()  # Close connection.
 True
 >>> db.connect()
@@ -724,18 +590,18 @@ True
 False
 ```
 
-Note that the call to `connect()` returns `False` if the database connection was already open.
+注意，如果数据库连接已经打开，则对`connect()`的调用将返回` False `。
 
-To close a connection, use the [`Database.close()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.close) method:
+要关闭连接，请使用[`Database.close()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.close)方法:
 
-```
+```python
 >>> db.close()
 True
 ```
 
-Calling `close()` on an already-closed connection will not result in an exception, but will return `False`:
+在已经关闭的连接上调用`close()`不会导致异常，但会返回`False`:
 
-```
+```python
 >>> db.connect()  # Open connection.
 True
 >>> db.close()  # Close connection.
@@ -744,20 +610,30 @@ True
 False
 ```
 
-You can test whether the database is closed using the [`Database.is_closed()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.is_closed) method:
+可以使用[`database .is_closed()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.is_closed)方法测试数据库是否关闭:
 
 ```
 >>> db.is_closed()
 True
 ```
 
-### Using autoconnect
+### 自动连接
 
 It is not necessary to explicitly connect to the database before using it if the database is initialized with `autoconnect=True` (the default). Managing connections explicitly is considered a **best practice**, therefore you may consider disabling the `autoconnect` behavior.
 
 It is very helpful to be explicit about your connection lifetimes. If the connection fails, for instance, the exception will be caught when the connection is being opened, rather than some arbitrary time later when a query is executed. Furthermore, if using a [connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool), it is necessary to call [`connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect) and [`close()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.close) to ensure connections are recycled properly.
 
 For the best guarantee of correctness, disable `autoconnect`:
+
+如果数据库是用`autoconnect=True`(默认值)初始化的，那么在使用它之前不需要显式地连接到数据库。显式管理连接被认为是**最佳实践**，因此你可以考虑禁用' autoconnect '行为。
+
+搞清楚连接的存续时期是非常有用。例如，如果连接失败，则在打开连接时捕获异常，而不是在执行查询时捕获异常。此外，如果使用[连接池](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html #池)，[`connect ()`] (http://docs.peewee-orm.com/en/latest/peewee/api.html Database.connect)和(“关闭()”)(http://docs.peewee-orm.com/en/latest/peewee/api.html # Database.close),以确保连接正确回收。
+
+为了最好地保证正确性，请禁用' autoconnect ':
+
+
+
+
 
 ```
 db = PostgresqlDatabase('my_app', user='postgres', autoconnect=False)
