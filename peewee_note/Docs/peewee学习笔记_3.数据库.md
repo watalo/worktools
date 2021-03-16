@@ -2,7 +2,14 @@
 
 因为我暂时只用SQlite，所以其他数据库的我就不翻译了。
 
-Peewee [ Database ](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)对象表示到数据库的连接。[' Database '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)类被实例化，包含了打开数据库连接所需的所有信息，然后可以用于:
+------
+[TOC]
+
+
+
+------
+
+Peewee [ Database ](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)对象表示到数据库的连接。[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)类被实例化，包含了打开数据库连接所需的所有信息，然后可以用于:
 
 -  打开和关闭连接.
 - 执行查询.
@@ -89,7 +96,7 @@ Consult your database driver’s documentation for the available parameters:
 
 ## 使用SQLite
 
-用[' SqliteDatabase() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)连接SQLite数据库，第一个参数是数据库的文件名（或者路径），或者字符串`:memory:`可以创建内存中的数据库。在数据库文件名之后，可以指定一个列表或pragmas或任何其他任意[sqlite3参数](https://docs.python.org/2/library/sqlite3.html#sqlite3.connect)。
+用[`SqliteDatabase()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)连接SQLite数据库，第一个参数是数据库的文件名（或者路径），或者字符串`:memory:`可以创建内存中的数据库。在数据库文件名之后，可以指定一个列表或pragmas或任何其他任意[sqlite3参数](https://docs.python.org/2/library/sqlite3.html#sqlite3.connect)。
 
 ```python
 sqlite_db = SqliteDatabase('my_app.db', pragmas={'journal_mode': 'wal'})
@@ -579,7 +586,7 @@ Traceback (most recent call last):
 peewee.OperationalError: Connection already opened.
 ```
 
-为了防止引发此异常，可以调用'`connect()`，并添加一个参数， `reuse_if_open`:
+为了防止引发此异常，可以调用`connect()`，并添加一个参数， `reuse_if_open`:
 
 ```python
 >>> db.close()  # Close connection.
@@ -612,42 +619,32 @@ False
 
 可以使用[`database .is_closed()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.is_closed)方法测试数据库是否关闭:
 
-```
+```python
 >>> db.is_closed()
 True
 ```
 
 ### 自动连接
 
-It is not necessary to explicitly connect to the database before using it if the database is initialized with `autoconnect=True` (the default). Managing connections explicitly is considered a **best practice**, therefore you may consider disabling the `autoconnect` behavior.
+如果数据库是用`autoconnect=True`(默认值)初始化的，那么在使用它之前不需要显式地连接到数据库。显式管理连接被认为是**最佳实践**，因此你可以考虑禁用`autoconnect`行为。
 
-It is very helpful to be explicit about your connection lifetimes. If the connection fails, for instance, the exception will be caught when the connection is being opened, rather than some arbitrary time later when a query is executed. Furthermore, if using a [connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool), it is necessary to call [`connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect) and [`close()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.close) to ensure connections are recycled properly.
+搞清楚连接的存续时期是非常有用。例如，如果连接失败，则在打开连接时捕获异常，而不是在执行查询时捕获异常。此外，如果使用[连接池](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html #池)，调用[`connect ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect)和[`close()`](http://docs.peewee-orm.com/en/latest/peewee/api.html # Database.close)以确保连接正确回收。
 
-For the best guarantee of correctness, disable `autoconnect`:
+为了最好地保证正确性，请禁用`autoconnect`:
 
-如果数据库是用`autoconnect=True`(默认值)初始化的，那么在使用它之前不需要显式地连接到数据库。显式管理连接被认为是**最佳实践**，因此你可以考虑禁用' autoconnect '行为。
-
-搞清楚连接的存续时期是非常有用。例如，如果连接失败，则在打开连接时捕获异常，而不是在执行查询时捕获异常。此外，如果使用[连接池](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html #池)，[`connect ()`] (http://docs.peewee-orm.com/en/latest/peewee/api.html Database.connect)和(“关闭()”)(http://docs.peewee-orm.com/en/latest/peewee/api.html # Database.close),以确保连接正确回收。
-
-为了最好地保证正确性，请禁用' autoconnect ':
-
-
-
-
-
-```
+```python
 db = PostgresqlDatabase('my_app', user='postgres', autoconnect=False)
 ```
 
-### Thread Safety
+### 线程安全
 
-Peewee keeps track of the connection state using thread-local storage, making the Peewee [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) object safe to use with multiple threads. Each thread will have it’s own connection, and as a result any given thread will only have a single connection open at a given time.
+Peewee使用线程本地存储来跟踪连接状态，使得Peewee [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)对象可以安全地与多个线程一起使用。每个线程都有它自己的连接，因此任何给定的线程在给定的时间只打开一个连接。
 
-### Context managers
+### 上下文管理器
 
-The database object itself can be used as a context-manager, which opens a connection for the duration of the wrapped block of code. Additionally, a transaction is opened at the start of the wrapped block and committed before the connection is closed (unless an error occurs, in which case the transaction is rolled back).
+数据库对象本身可以用作上下文管理器，它在包装的代码块的持续时间内打开连接。此外，事务在包装块的开始处打开，并在连接关闭之前提交(除非发生错误，在这种情况下事务被回滚)。
 
-```
+```python
 >>> db.is_closed()
 True
 >>> with db:
@@ -658,9 +655,9 @@ False
 True
 ```
 
-If you want to manage transactions separately, you can use the [`Database.connection_context()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connection_context) context manager.
+如果你想单独管理事务，你可以使用[`Database.connection_context()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connection_context)上下文管理器。
 
-```
+```python
 >>> with db.connection_context():
 ...     # db connection is open.
 ...     pass
@@ -669,9 +666,9 @@ If you want to manage transactions separately, you can use the [`Database.connec
 True
 ```
 
-The `connection_context()` method can also be used as a decorator:
+`connection_context()`方法也可以用作装饰器:
 
-```
+```python
 @db.connection_context()
 def prepare_database():
     # DB connection will be managed by the decorator, which opens
@@ -680,9 +677,9 @@ def prepare_database():
     load_fixture_data(db)
 ```
 
-### DB-API Connection Object
+### DB-API 连接对象
 
-To obtain a reference to the underlying DB-API 2.0 connection, use the [`Database.connection()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connection) method. This method will return the currently-open connection object, if one exists, otherwise it will open a new connection.
+要获取对底层DB-API 2.0连接的引用，请使用[`Database.connection()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connection)方法。这个方法将返回当前打开的连接对象(如果存在的话)，否则它将打开一个新的连接。
 
 ```
 >>> db.connection()
@@ -693,10 +690,11 @@ To obtain a reference to the underlying DB-API 2.0 connection, use the [`Databas
 
 ## Connection Pooling
 
-Connection pooling is provided by the [pool module](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool), included in the [playhouse](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse) extensions library. The pool supports:
+连接池由[pool module](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool)提供，包含在[playhouse](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse)扩展库中。连接池支持:
 
-- Timeout after which connections will be recycled.
-- Upper bound on the number of open connections.
+- 超时设置，超过此时间连接将被回收。
+
+- 连接数上限设置。
 
 ```
 from playhouse.pool import PooledPostgresqlExtDatabase
@@ -712,7 +710,7 @@ class BaseModel(Model):
         database = db
 ```
 
-The following pooled database classes are available:
+以下连接池都可以使用:
 
 - [`PooledPostgresqlDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledPostgresqlDatabase)
 - [`PooledPostgresqlExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledPostgresqlExtDatabase)
@@ -720,26 +718,26 @@ The following pooled database classes are available:
 - [`PooledSqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledSqliteDatabase)
 - [`PooledSqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledSqliteExtDatabase)
 
-For an in-depth discussion of peewee’s connection pool, see the [Connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool) section of the [playhouse](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse) documentation.
+参考： [Connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool)  或者 [playhouse](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse) .
 
 
 
-## Testing Peewee Applications
+## 测试Peewee应用
 
-When writing tests for an application that uses Peewee, it may be desirable to use a special database for tests. Another common practice is to run tests against a clean database, which means ensuring tables are empty at the start of each test.
+当为使用Peewee的应用程序编写测试时，使用一个特殊的数据库进行测试可能是可取的。另一个常见的方式是对一个空数据库运行测试，需要确保每个测试开始时表是空的。
 
-To bind your models to a database at run-time, you can use the following methods:
+要在运行时将模型绑定到数据库，可用以下方法:
 
-- [`Database.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind_ctx), which returns a context-manager that will bind the given models to the database instance for the duration of the wrapped block.
-- [`Model.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx), which likewise returns a context-manager that binds the model (and optionally its dependencies) to the given database for the duration of the wrapped block.
-- [`Database.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind), which is a one-time operation that binds the models (and optionally its dependencies) to the given database.
-- [`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind), which is a one-time operation that binds the model (and optionally its dependencies) to the given database.
+- [`database.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind_ctx)，它返回一个上下文管理器，在包装块的持续时间内将给定的模型绑定到数据库实例。
+- [`model.bind_ctx()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind_ctx)，它同样返回一个上下文管理器，在包装块的持续时间内将模型(及其可选的依赖项)绑定到给定的数据库。
+- [`database.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.bind)，这是一个一次性操作，它将模型(及其可选的依赖项)绑定到给定的数据库。
+- [`model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind)，这是一个一次性操作，它将模型(及其可选的依赖项)绑定到给定的数据库。
 
-Depending on your use-case, one of these options may make more sense. For the examples below, I will use [`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind).
+根据您的用例，其中一个选项可能更有意义。对于下面的例子，我将使用[`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind)。
 
-Example test-case setup:
+测试用例设置示例:
 
-```
+```python
 # tests.py
 import unittest
 from my_app.models import EventLog, Relationship, Tweet, User
@@ -771,63 +769,27 @@ class BaseTestCase(unittest.TestCase):
         # database here. But for tests this is probably not necessary.
 ```
 
-As an aside, and speaking from experience, I recommend testing your application using the same database backend you use in production, so as to avoid any potential compatibility issues.
+另外，从经验来看，我建议使用与生产中使用的相同的数据库后端来测试应用程序，以避免任何潜在的兼容性问题。
 
-If you’d like to see some more examples of how to run tests using Peewee, check out Peewee’s own [test-suite](https://github.com/coleifer/peewee/tree/master/tests).
-
-## Async with Gevent
-
-[gevent](http://www.gevent.org/) is recommended for doing asynchronous I/O with Postgresql or MySQL. Reasons I prefer gevent:
-
-- No need for special-purpose “loop-aware” re-implementations of *everything*. Third-party libraries using asyncio usually have to re-implement layers and layers of code as well as re-implementing the protocols themselves.
-- Gevent allows you to write your application in normal, clean, idiomatic Python. No need to litter every line with “async”, “await” and other noise. No callbacks, futures, tasks, promises. No cruft.
-- Gevent works with both Python 2 *and* Python 3.
-- Gevent is *Pythonic*. Asyncio is an un-pythonic abomination.
-
-Besides monkey-patching socket, no special steps are required if you are using **MySQL** with a pure Python driver like [pymysql](https://github.com/PyMySQL/PyMySQL) or are using [mysql-connector](https://dev.mysql.com/doc/connector-python/en/) in pure-python mode. MySQL drivers written in C will require special configuration which is beyond the scope of this document.
-
-For **Postgres** and [psycopg2](http://initd.org/psycopg), which is a C extension, you can use the following code snippet to register event hooks that will make your connection async:
-
-```
-from gevent.socket import wait_read, wait_write
-from psycopg2 import extensions
-
-# Call this function after monkey-patching socket (etc).
-def patch_psycopg2():
-    extensions.set_wait_callback(_psycopg2_gevent_callback)
-
-def _psycopg2_gevent_callback(conn, timeout=None):
-    while True:
-        state = conn.poll()
-        if state == extensions.POLL_OK:
-            break
-        elif state == extensions.POLL_READ:
-            wait_read(conn.fileno(), timeout=timeout)
-        elif state == extensions.POLL_WRITE:
-            wait_write(conn.fileno(), timeout=timeout)
-        else:
-            raise ValueError('poll() returned unexpected result')
-```
-
-**SQLite**, because it is embedded in the Python application itself, does not do any socket operations that would be a candidate for non-blocking. Async has no effect one way or the other on SQLite databases.
+如果您想了解更多如何使用Peewee运行测试的示例，请查看Peewee自己的[测试套件](https://github.com/coleifer/peewee/tree/master/tests)。
 
 
 
-## Framework Integration
+## 框架集成
 
-For web applications, it is common to open a connection when a request is received, and to close the connection when the response is delivered. In this section I will describe how to add hooks to your web app to ensure the database connection is handled properly.
+对于web应用程序，通常是在收到请求时打开连接，在传递响应时关闭连接。在这一节中，我将描述如何向web应用程序添加钩子，以确保数据库连接得到正确处理.
 
-These steps will ensure that regardless of whether you’re using a simple SQLite database, or a pool of multiple Postgres connections, peewee will handle the connections correctly.
+这些步骤将确保无论您使用的是简单的SQLite数据库，还是多个Postgres连接池，peewee都将正确处理连接。
 
-Note
+⚠️注意
 
-Applications that receive lots of traffic may benefit from using a [connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool) to mitigate the cost of setting up and tearing down connections on every request.
+接收大量流量的应用程序可能受益于使用[连接池](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool)，以减少针对每个请求建立和断开连接的成本。
 
 ### Flask
 
-Flask and peewee are a great combo and my go-to for projects of any size. Flask provides two hooks which we will use to open and close our db connection. We’ll open the connection when a request is received, then close it when the response is returned.
+Flask和peewee是一个很好的组合，并且是任何规模的项目的首选。Flask提供了两个挂钩，我们将使用它们来打开和关闭我们的db连接。我们将在收到请求时打开连接，然后在返回响应时关闭连接。
 
-```
+```python
 from flask import Flask
 from peewee import *
 
@@ -848,266 +810,13 @@ def _db_close(exc):
         database.close()
 ```
 
-### Django
 
-While it’s less common to see peewee used with Django, it is actually very easy to use the two. To manage your peewee database connections with Django, the easiest way in my opinion is to add a middleware to your app. The middleware should be the very first in the list of middlewares, to ensure it runs first when a request is handled, and last when the response is returned.
 
-If you have a django project named *my_blog* and your peewee database is defined in the module `my_blog.db`, you might add the following middleware class:
+## 执行查询
 
-```
-# middleware.py
-from my_blog.db import database  # Import the peewee database instance.
+SQL查询通常通过在使用查询生成器api构造的查询上调用`execute()`来执行(或者在[`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询的情况下简单地遍历查询对象)。对于希望直接执行SQL的情况，可以使用[`Database.execute_sql()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute_sql)方法。
 
-
-def PeeweeConnectionMiddleware(get_response):
-    def middleware(request):
-        database.connect()
-        try:
-            response = get_response(request)
-        finally:
-            if not database.is_closed():
-                database.close()
-        return response
-    return middleware
-
-
-# Older Django < 1.10 middleware.
-class PeeweeConnectionMiddleware(object):
-    def process_request(self, request):
-        database.connect()
-
-    def process_response(self, request, response):
-        if not database.is_closed():
-            database.close()
-        return response
-```
-
-To ensure this middleware gets executed, add it to your `settings` module:
-
-```
-# settings.py
-MIDDLEWARE_CLASSES = (
-    # Our custom middleware appears first in the list.
-    'my_blog.middleware.PeeweeConnectionMiddleware',
-
-    # These are the default Django 1.7 middlewares. Yours may differ,
-    # but the important this is that our Peewee middleware comes first.
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-)
-
-# ... other Django settings ...
-```
-
-### Bottle
-
-I haven’t used bottle myself, but looking at the documentation I believe the following code should ensure the database connections are properly managed:
-
-```
-# app.py
-from bottle import hook  #, route, etc, etc.
-from peewee import *
-
-db = SqliteDatabase('my-bottle-app.db')
-
-@hook('before_request')
-def _connect_db():
-    db.connect()
-
-@hook('after_request')
-def _close_db():
-    if not db.is_closed():
-        db.close()
-
-# Rest of your bottle app goes here.
-```
-
-### Web.py
-
-See the documentation for [application processors](http://webpy.org/cookbook/application_processors).
-
-```
-db = SqliteDatabase('my_webpy_app.db')
-
-def connection_processor(handler):
-    db.connect()
-    try:
-        return handler()
-    finally:
-        if not db.is_closed():
-            db.close()
-
-app.add_processor(connection_processor)
-```
-
-### Tornado
-
-It looks like Tornado’s `RequestHandler` class implements two hooks which can be used to open and close connections when a request is handled.
-
-```
-from tornado.web import RequestHandler
-
-db = SqliteDatabase('my_db.db')
-
-class PeeweeRequestHandler(RequestHandler):
-    def prepare(self):
-        db.connect()
-        return super(PeeweeRequestHandler, self).prepare()
-
-    def on_finish(self):
-        if not db.is_closed():
-            db.close()
-        return super(PeeweeRequestHandler, self).on_finish()
-```
-
-In your app, instead of extending the default `RequestHandler`, now you can extend `PeeweeRequestHandler`.
-
-Note that this does not address how to use peewee asynchronously with Tornado or another event loop.
-
-### Wheezy.web
-
-The connection handling code can be placed in a [middleware](https://pythonhosted.org/wheezy.http/userguide.html#middleware).
-
-```
-def peewee_middleware(request, following):
-    db.connect()
-    try:
-        response = following(request)
-    finally:
-        if not db.is_closed():
-            db.close()
-    return response
-
-app = WSGIApplication(middleware=[
-    lambda x: peewee_middleware,
-    # ... other middlewares ...
-])
-```
-
-Thanks to GitHub user *@tuukkamustonen* for submitting this code.
-
-### Falcon
-
-The connection handling code can be placed in a [middleware component](https://falcon.readthedocs.io/en/stable/api/middleware.html).
-
-```
-import falcon
-from peewee import *
-
-database = SqliteDatabase('my_app.db')
-
-class PeeweeConnectionMiddleware(object):
-    def process_request(self, req, resp):
-        database.connect()
-
-    def process_response(self, req, resp, resource, req_succeeded):
-        if not database.is_closed():
-            database.close()
-
-application = falcon.API(middleware=[
-    PeeweeConnectionMiddleware(),
-    # ... other middlewares ...
-])
-```
-
-### Pyramid
-
-Set up a Request factory that handles database connection lifetime as follows:
-
-```
-from pyramid.request import Request
-
-db = SqliteDatabase('pyramidapp.db')
-
-class MyRequest(Request):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        db.connect()
-        self.add_finished_callback(self.finish)
-
-    def finish(self, request):
-        if not db.is_closed():
-            db.close()
-```
-
-In your application main() make sure MyRequest is used as request_factory:
-
-```
-def main(global_settings, **settings):
-    config = Configurator(settings=settings, ...)
-    config.set_request_factory(MyRequest)
-```
-
-### CherryPy
-
-See [Publish/Subscribe pattern](http://docs.cherrypy.org/en/latest/extend.html#publish-subscribe-pattern).
-
-```
-def _db_connect():
-    db.connect()
-
-def _db_close():
-    if not db.is_closed():
-        db.close()
-
-cherrypy.engine.subscribe('before_request', _db_connect)
-cherrypy.engine.subscribe('after_request', _db_close)
-```
-
-### Sanic
-
-In Sanic, the connection handling code can be placed in the request and response middleware [sanic middleware](http://sanic.readthedocs.io/en/latest/sanic/middleware.html).
-
-```
-# app.py
-@app.middleware('request')
-async def handle_request(request):
-    db.connect()
-
-@app.middleware('response')
-async def handle_response(request, response):
-    if not db.is_closed():
-        db.close()
-```
-
-### FastAPI
-
-Similar to Flask, FastAPI provides two event based hooks which we will use to open and close our db connection. We’ll open the connection when a request is received, then close it when the response is returned.
-
-```
-from fastapi import FastAPI
-from peewee import *
-
-db = SqliteDatabase('my_app.db')
-app = FastAPI()
-
-# This hook ensures that a connection is opened to handle any queries
-# generated by the request.
-@app.on_event("startup")
-def startup():
-    db.connect()
-
-
-# This hook ensures that the connection is closed when we've finished
-# processing the request.
-@app.on_event("shutdown")
-def shutdown():
-    if not db.is_closed():
-        db.close()
-```
-
-### Other frameworks
-
-Don’t see your framework here? Please [open a GitHub ticket](https://github.com/coleifer/peewee/issues/new) and I’ll see about adding a section, or better yet, submit a documentation pull-request.
-
-## Executing Queries
-
-SQL queries will typically be executed by calling `execute()` on a query constructed using the query-builder APIs (or by simply iterating over a query object in the case of a [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query). For cases where you wish to execute SQL directly, you can use the [`Database.execute_sql()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute_sql) method.
-
-```
+```python
 db = SqliteDatabase('my_app.db')
 db.connect()
 
@@ -1123,17 +832,17 @@ for row in cursor.fetchall():
 
 
 
-## Managing Transactions
+## 管理事务
 
-Peewee provides several interfaces for working with transactions. The most general is the [`Database.atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) method, which also supports nested transactions. [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) blocks will be run in a transaction or savepoint, depending on the level of nesting.
+Peewee提供了几个处理事务的接口。最常用的是[`Database.atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)方法，它也支持嵌套事务。[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)块将在事务或savepoint中运行，这取决于嵌套的级别。
 
-If an exception occurs in a wrapped block, the current transaction/savepoint will be rolled back. Otherwise the statements will be committed at the end of the wrapped block.
+如果在包装的块中发生异常，则当前事务/保存点将回滚。否则，语句将在被包装的块的末尾被提交。
 
-Note
+⚠️注意
 
-While inside a block wrapped by the [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) context manager, you can explicitly rollback or commit at any point by calling `Transaction.rollback()` or `Transaction.commit()`. When you do this inside a wrapped block of code, a new transaction will be started automatically.
+在由[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)上下文管理器封装的块中，您可以通过调用`Transaction.rollback()`或`Transaction.commit()`在任何点显式地回滚或提交。当您在封装的代码块中执行此操作时，一个新的事务将自动启动。
 
-```
+```python
 with db.atomic() as transaction:  # Opens new transaction.
     try:
         save_some_objects()
@@ -1150,15 +859,13 @@ with db.atomic() as transaction:  # Opens new transaction.
     # automatically call commit for us.
 ```
 
-Note
+⚠️注意
 
-[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) can be used as either a **context manager** or a **decorator**.
+[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)可以用作**上下文管理器**或**装饰器**。
 
-### Context manager
+### 上下文管理器用法
 
-Using `atomic` as context manager:
-
-```
+```python
 db = SqliteDatabase(':memory:')
 
 with db.atomic() as txn:
@@ -1179,9 +886,9 @@ with db.atomic() as txn:
 # occurs). At that point there will be two users, "charlie" and "mickey".
 ```
 
-You can use the `atomic` method to perform *get or create* operations as well:
+你也可以使用`atomic`方法来执行*get或create*操作:
 
-```
+```python
 try:
     with db.atomic():
         user = User.create(username=username)
@@ -1190,11 +897,9 @@ except peewee.IntegrityError:
     return 'Failure: %s is already in use.' % username
 ```
 
-### Decorator
+### 装饰器用法
 
-Using `atomic` as a decorator:
-
-```
+```python
 @db.atomic()
 def create_user(username):
     # This statement will run in a transaction. If the caller is already
@@ -1204,11 +909,11 @@ def create_user(username):
 create_user('charlie')
 ```
 
-### Nesting Transactions
+### 嵌套事务
 
-[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) provides transparent nesting of transactions. When using [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic), the outer-most call will be wrapped in a transaction, and any nested calls will use savepoints.
+[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)提供了透明的事务嵌套。当使用[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)时，最外层的调用将被包装在一个事务中，任何嵌套调用都将使用保存点。
 
-```
+```python
 with db.atomic() as txn:
     perform_operation()
 
@@ -1216,15 +921,15 @@ with db.atomic() as txn:
         perform_another_operation()
 ```
 
-Peewee supports nested transactions through the use of savepoints (for more information, see [`savepoint()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.savepoint)).
+Peewee通过使用保存点支持嵌套事务(有关更多信息，请参见[`savepoint()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.savepoint))。
 
-### Explicit transaction
+### 显式事务
 
-If you wish to explicitly run code in a transaction, you can use [`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction). Like [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic), [`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction) can be used as a context manager or as a decorator.
+如果希望显式地在事务中运行代码，可以使用[`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction)。像[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)一样，[`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction)可以用作上下文管理器或装饰器。
 
-If an exception occurs in a wrapped block, the transaction will be rolled back. Otherwise the statements will be committed at the end of the wrapped block.
+如果在包装的块中发生异常，则事务将回滚。否则，语句将在被包装的块的末尾被提交。
 
-```
+```python
 db = SqliteDatabase(':memory:')
 
 with db.transaction() as txn:
@@ -1234,7 +939,7 @@ with db.transaction() as txn:
 
 Transactions can be explicitly committed or rolled-back within the wrapped block. When this happens, a new transaction will be started.
 
-```
+```python
 with db.transaction() as txn:
     User.create(username='mickey')
     txn.commit()  # Changes are saved and a new transaction begins.
@@ -1254,15 +959,15 @@ with db.transaction() as txn:
     User.create(username='mr. whiskers')
 ```
 
-Note
+⚠️注意
 
-If you attempt to nest transactions with peewee using the [`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction) context manager, only the outer-most transaction will be used. However if an exception occurs in a nested block, this can lead to unpredictable behavior, so it is strongly recommended that you use [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic).
+如果您试图使用[`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction)上下文管理器将事务嵌套到peewee中，则只会使用最外层的事务。但是，如果在嵌套块中发生异常，这可能会导致不可预知的行为，因此强烈建议您使用[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)。
 
-### Explicit Savepoints
+### 显式保存点
 
-Just as you can explicitly create transactions, you can also explicitly create savepoints using the [`savepoint()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.savepoint) method. Savepoints must occur within a transaction, but can be nested arbitrarily deep.
+正如您可以显式地创建事务一样，您也可以使用[`savepoint()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.savepoint)方法显式地创建保存点。保存点必须发生在事务中，但可以嵌套任意深度。
 
-```
+```python
 with db.transaction() as txn:
     with db.savepoint() as sp:
         User.create(username='mickey')
@@ -1272,17 +977,17 @@ with db.transaction() as txn:
         sp2.rollback()  # "zaizee" will not be saved, but "mickey" will be.
 ```
 
-Warning
+⛔️警告
 
-If you manually commit or roll back a savepoint, a new savepoint **will not** automatically be created. This differs from the behavior of `transaction`, which will automatically open a new transaction after manual commit/rollback.
+如果您手动提交或回滚一个保存点，将**不会**自动创建一个新的保存点。这与`事务`的行为不同，后者会在手动提交/回滚后自动打开一个新事务。
 
-### Autocommit Mode
+### Autocommit模式
 
-By default, Peewee operates in *autocommit mode*, such that any statements executed outside of a transaction are run in their own transaction. To group multiple statements into a transaction, Peewee provides the [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic) context-manager/decorator. This should cover all use-cases, but in the unlikely event you want to temporarily disable Peewee’s transaction management completely, you can use the [`Database.manual_commit()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.manual_commit) context-manager/decorator.
+默认情况下，Peewee以*autocommit模式*运行，这样任何在事务之外执行的语句都运行在它们自己的事务中。为了将多个语句分组到一个事务中，Peewee提供了[`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)上下文管理器/装饰器。这应该涵盖所有用例，但在不太可能的情况下，您想要暂时完全禁用Peewee的事务管理，您可以使用[`Database.manual_commit()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.manual_commit)上下文管理器/装饰器。
 
-Here is how you might emulate the behavior of the [`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction) context manager:
+下面是如何模拟[`transaction()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.transaction)上下文管理器的行为:
 
-```
+```python
 with db.manual_commit():
     db.begin()  # Have to begin transaction explicitly.
     try:
@@ -1298,13 +1003,11 @@ with db.manual_commit():
             raise
 ```
 
-Again – I don’t anticipate anyone needing this, but it’s here just in case.
+再说一遍，Peewee作者不认为有人会需要这个，但它只是以防万一。人家叫我们不用，我就不用呗。
 
+## 数据库错误类型
 
-
-## Database Errors
-
-The Python DB-API 2.0 spec describes [several types of exceptions](https://www.python.org/dev/peps/pep-0249/#exceptions). Because most database drivers have their own implementations of these exceptions, Peewee simplifies things by providing its own wrappers around any implementation-specific exception classes. That way, you don’t need to worry about importing any special exception classes, you can just use the ones from peewee:
+Python DB-API 2.0规范描述了[几种类型的异常](https://www.python.org/dev/peps/pep-0249/#exceptions)。因为大多数数据库驱动程序都有它们自己的这些异常实现，所以Peewee通过提供它自己的包装器来简化这些事情，这些包装器围绕着任何特定于实现的异常类。这样，你不需要担心导入任何特殊的异常类，你可以使用来自peewee的异常类:
 
 - `DatabaseError`
 - `DataError`
@@ -1315,15 +1018,15 @@ The Python DB-API 2.0 spec describes [several types of exceptions](https://www.p
 - `OperationalError`
 - `ProgrammingError`
 
-Note
+⚠️注意
 
-All of these error classes extend `PeeweeException`.
+所有这些错误类都扩展了“PeeweeException”。
 
-## Logging queries
+## 日志查询
 
-All queries are logged to the *peewee* namespace using the standard library `logging` module. Queries are logged using the *DEBUG* level. If you’re interested in doing something with the queries, you can simply register a handler.
+使用标准库的“logging”模块，所有查询都被记录到*peewee*命名空间。查询使用*DEBUG*级别记录。如果您对使用查询做一些事情感兴趣，您可以简单地注册一个处理程序。
 
-```
+```python
 # Print all queries to stderr.
 import logging
 logger = logging.getLogger('peewee')
@@ -1331,11 +1034,11 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 ```
 
-## Adding a new Database Driver
+## 添加一个新的数据库驱动程序
 
-Peewee comes with built-in support for Postgres, MySQL and SQLite. These databases are very popular and run the gamut from fast, embeddable databases to heavyweight servers suitable for large-scale deployments. That being said, there are a ton of cool databases out there and adding support for your database-of-choice should be really easy, provided the driver supports the [DB-API 2.0 spec](http://www.python.org/dev/peps/pep-0249/).
+Peewee内置支持Postgres、MySQL和SQLite。这些数据库非常流行，从快速的嵌入式数据库到适合大规模部署的重量级服务器。也就是说，有很多很酷的数据库，如果驱动程序支持[DB-API 2.0规范](http://www.python.org/dev/peps/pep-0249/)，那么添加对所选数据库的支持应该非常容易。
 
-The DB-API 2.0 spec should be familiar to you if you’ve used the standard library sqlite3 driver, psycopg2 or the like. Peewee currently relies on a handful of parts:
+如果您使用过标准库sqlite3驱动程序、psycopg2或类似的程序，那么您应该熟悉DB-API 2.0规范。目前，Peewee只依赖于几个部分:
 
 - Connection.commit
 - Connection.execute
@@ -1343,11 +1046,11 @@ The DB-API 2.0 spec should be familiar to you if you’ve used the standard libr
 - Cursor.description
 - Cursor.fetchone
 
-These methods are generally wrapped up in higher-level abstractions and exposed by the [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database), so even if your driver doesn’t do these exactly you can still get a lot of mileage out of peewee. An example is the [apsw sqlite driver](http://code.google.com/p/apsw/) in the “playhouse” module.
+这些方法通常被封装在更高级别的抽象中，并由[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)公开，所以即使你的驱动程序不完全这样做，你仍然可以从peewee得到很多里程。`playhouse`模块中的[apsw sqlite驱动程序](http://code.google.com/p/apsw/)就是一个例子。
 
-The first thing is to provide a subclass of [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) that will open a connection.
+第一件事是提供[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)的一个子类来打开一个连接。
 
-```
+```python
 from peewee import Database
 import foodb  # Our fictional DB-API 2.0 driver.
 
@@ -1357,9 +1060,9 @@ class FooDatabase(Database):
         return foodb.connect(database, **kwargs)
 ```
 
-The [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) provides a higher-level API and is responsible for executing queries, creating tables and indexes, and introspecting the database to get lists of tables. The above implementation is the absolute minimum needed, though some features will not work – for best results you will want to additionally add a method for extracting a list of tables and indexes for a table from the database. We’ll pretend that `FooDB` is a lot like MySQL and has special “SHOW” statements:
+[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)提供了更高级别的API，负责执行查询、创建表和索引，以及内省数据库以获取表列表。上面的实现绝对是最不需要的，但是有些特性将不起作用——为了获得最好的结果，您需要另外添加一个方法，用于从数据库中提取表的列表和表的索引。我们假设`FooDB`很像MySQL，并且有特殊的" SHOW "语句:
 
-```
+```python
 class FooDatabase(Database):
     def _connect(self, database, **kwargs):
         return foodb.connect(database, **kwargs)
@@ -1369,22 +1072,22 @@ class FooDatabase(Database):
         return [r[0] for r in res.fetchall()]
 ```
 
-Other things the database handles that are not covered here include:
+这里没有涉及到数据库处理的其他事项包括:
 
-- [`last_insert_id()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.last_insert_id) and [`rows_affected()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.rows_affected)
-- `param` and `quote`, which tell the SQL-generating code how to add parameter placeholders and quote entity names.
-- `field_types` for mapping data-types like INT or TEXT to their vendor-specific type names.
-- `operations` for mapping operations such as “LIKE/ILIKE” to their database equivalent
+- [`last_insert_id()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.last_insert_id)和[`rows_affected()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.rows_affected)
+- `param `和`quote`，它们告诉sql生成代码如何添加参数占位符和引用实体名称。
+- `field_types`用于将数据类型(如INT或TEXT)映射到它们特定供应商的类型名。
+- `operations`用于映射操作，如“LIKE/ILIKE”到它们的数据库等价
 
-Refer to the [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) API reference or the [source code](https://github.com/coleifer/peewee/blob/master/peewee.py). for details.
+请参阅[' Database '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) API参考或[源代码](https://github.com/coleifer/peewee/blob/master/peewee.py)。获取详细信息。
 
-Note
+⚠️注意
 
-If your driver conforms to the DB-API 2.0 spec, there shouldn’t be much work needed to get up and running.
+如果你的驱动程序符合DB-API 2.0规范，那么启动和运行应该不需要做太多的工作。
 
-Our new database can be used just like any of the other database subclasses:
+我们的新数据库可以像其他任何数据库子类一样使用:
 
-```
+```python
 from peewee import *
 from foodb_ext import FooDatabase
 
@@ -1400,4 +1103,3 @@ class Blog(BaseModel):
     pub_date = DateTimeField()
 ```
 
-[Next ](http://docs.peewee-orm.com/en/latest/peewee/models.html)[ Previous](http://docs.peewee-orm.com/en/latest/peewee/contributing.html)
