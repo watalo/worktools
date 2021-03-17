@@ -9,6 +9,7 @@
 '''
 
 # here put the import lib
+from enum import unique
 from peewee import *
 from datetime import date
 
@@ -28,7 +29,7 @@ class BaseModel(Model):
        database = database
 
 class Member(BaseModel):
-    name    = CharField()
+    name    = CharField(unique=True)
 
 
 class Project(BaseModel):
@@ -69,8 +70,11 @@ def db_connect():
         database.close()
 
 def new_member(name_):
-    Member.create(name = name_)
-    print('{}已加入团队!'.format(name_))
+    if not Member.get(Member.name == name_):
+        Member.create(name = name_)
+        print('{}已加入团队!'.format(name_))
+    else:
+
 
 def new_project(name_, member, scheme_):
     x = Project.create(name = name_, member = Member.select().where(Member.name == member), status = '营销中', scheme = scheme_)
@@ -133,12 +137,37 @@ def change_proj(attr_option, name, new):
 
     
 
-def change_menb(name_changed, new_name):
+def change_memb(name_changed, new_name):
     memb_obj = Member.get(Member.name == name_changed)
     memb_obj.name = new_name
     memb_obj.save()
     print('{}已更正为{}'.format(name_changed, new_name))
 
+
+def delete_memb(name_):
+    '''
+    删除成员，会引发Project和Product的错误
+    所以删除成员 = 将成员替换成'待定'可能更好
+    '''
+    try:
+        new_member('待定')
+        change_memb(name_, '待定')
+        return '团队成员已删除，管户成员待定'
+    except:
+        return '【错误】：1.成员已删除；2.已设置未待定'
+
+
+
+        
+
+
+
+
+def delete_prod():
+    pass
+
+def delete_proj():
+    pass
 
 
 
