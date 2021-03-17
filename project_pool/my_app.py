@@ -74,12 +74,76 @@ def new_member(name_):
 
 def new_project(name_, member, scheme_):
     x = Project.create(name = name_, member = Member.select().where(Member.name == member), status = '营销中', scheme = scheme_)
-    res = ('新项目:{n}授信项目已记录，由{m}管理，目前状态为{s}'.format(n = name_, m = x.member.name, x.status))
+    res = '新项目:{n}授信项目已记录，由{m}管理，目前状态为{s}'.format(n = name_, m = x.member.name, s = x.status)
     print(res)
     return res
 
+def new_product(name_, catagory_, amount_, balance_, bargain_, start_date_, end_date_):
+    prod = Product.create(
+        proj = Project.select().where(Project.name == name_), 
+        member = Member.select().join(Project).where(Project.name == name_),
+        catagory = catagory_, 
+        amount = amount_, 
+        balance = balance_, 
+        bargain = bargain_, 
+        start_date = start_date_, 
+        end_date = end_date_,
+    )
+    res = '新增投放：{}{}{}'.format(name_, catagory_, amount_)
+    print(res)
+    return res
 
-new_member('test')
+def change_prod(attr_option, name, new):
+    '''
+    不太好弄啊，产品的不同通过名字唯一确定，通过其他属性都不行。
+    @attr_option:Product属性：
+        所属项目 --> -p
+        执行人员 --> -m
+        产品品种 --> -c
+        初始金额 --> -a
+        存量余额 --> -bl  
+        派生存款 --> -bg  
+        起始日期 --> -sd  
+        到期日期 --> -ed
+    '''
+    pass
+
+def change_proj(attr_option, name, new):
+    '''
+    @attr_option: Project属性：
+        名称 -->  -n
+        成员 -->  -m
+        状态 -->  -s
+        方案 -->  -sh
+    '''
+    if attr_option in ['-n', '-m', '-s', '-sh']:
+        proj = Project.get(Project.name == name)
+        if attr_option == '-n':
+            proj.name = new
+        elif attr_option == '-m':
+            proj.member = Member.get(Member.name == new)
+        elif attr_option == '-s':
+            proj.status = new
+        elif attr_option == '-sh':
+            proj.scheme = new
+        proj.save()
+        return '修改成功！'
+    else:
+        return '可选属性：-n：名称 -m：成员 -s：状态 -sh：方案，请再次输入。'
+
+    
+
+def change_menb(name_changed, new_name):
+    memb_obj = Member.get(Member.name == name_changed)
+    memb_obj.name = new_name
+    memb_obj.save()
+    print('{}已更正为{}'.format(name_changed, new_name))
+
+
+
+
+
+# new_member('test')
 # memb1 = Member.create(name = '小明')
 # memb2 = Member.create(name = '阿呆')
 
