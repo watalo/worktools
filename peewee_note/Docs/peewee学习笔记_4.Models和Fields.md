@@ -1,5 +1,11 @@
 # Models and Fields
 
+[TOC]
+
+------
+
+
+
 [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) 类, [`Field`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Field) 实例和model实例都对应有数据库概念:
 
 | Things         | Corresponds to…         |
@@ -8,7 +14,7 @@
 | Field instance | Column on a table       |
 | Model instance | Row in a database table |
 
-下面的代码展示了定义数据库链接（databass connection）和Model类的典型方式：
+下面的代码展示了定义数据库连接（databass connection）和Model类的典型方式：
 
 ```python
 import datetime
@@ -55,50 +61,51 @@ class Tweet(BaseModel):
 
 3. 定义一个model实例
 
-   > ```
+   > ```python
    > class User(BaseModel):
    >     username = CharField(unique=True)
    > ```
    >
-   > Model 定义用的是ORMs的声明方式，类似于SQLAlchemy或Django。 注意：User继承了Basemodel，所以User也将继承数据库连接.我们明确的定义了username的唯一行限制。因为我们没有指明一个主键，所以peewee会自动增加一个自增长的整数作为主键——id。
+   > Model 定义用的是ORMs的声明方式，类似于SQLAlchemy或Django。 注意：User继承了Basemodel，所以User也将继承数据库连接。我们明确的定义了username的唯一行限制。因为我们没有指明一个主键，所以peewee会自动增加一个自增长的整数作为主键——id。
 
-Note
+> Note
+>
+> 如果我们有个现成的数据库，可以使用pwiz来自动生成。
+>
+> ```python
+> python -m pwiz -e sqlite path/to/sqlite_database.db
+> ```
+>
+> 其他数据库参考：[pwiz, a model generator](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pwiz) 
+>
 
-如果我们有个现成的数据库，可以使用pwiz来自动生成。
+
+
+## Fields()：字段
+
+[`Field`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Field)类用于描述[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model)属性到数据库列的映射。每个字段类型都有相应的SQL存储类(即varchar、int)， python数据类型和底层存储之间的转换是透明处理的。
+
+当创建[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model)类时，字段被定义为类属性。这对于django框架的用户来说应该很熟悉。这里有一个例子:
 
 ```python
-python -m pwiz -e sqlite path/to/sqlite_database.db
-```
-
-其他数据库参考：[pwiz, a model generator](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pwiz) 
-
-## Fields()
-
-The [`Field`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Field) class is used to describe the mapping of [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) attributes to database columns. Each field type has a corresponding SQL storage class (i.e. varchar, int), and conversion between python data types and underlying storage is handled transparently.
-
-When creating a [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) class, fields are defined as class attributes. This should look familiar to users of the django framework. Here’s an example:
-
-```
 class User(Model):
     username = CharField()
     join_date = DateTimeField()
     about_me = TextField()
 ```
 
-In the above example, because none of the fields are initialized with `primary_key=True`, an auto-incrementing primary key will automatically be created and named “id”. Peewee uses [`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField) to signify an auto-incrementing integer primary key, which implies `primary_key=True`.
+在上面的例子中，因为没有一个字段被初始化为`primary_key=True`，一个自动递增的主键将被自动创建并命名为`id`。Peewee使用[`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField)表示一个自动递增的整型主键，这意味着`primary_key=True`。有一种特殊类型的字段，[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)，它允许你直观地表示模型之间的外键关系:
 
-There is one special type of field, [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField), which allows you to represent foreign-key relationships between models in an intuitive way:
-
-```
+```python
 class Message(Model):
     user = ForeignKeyField(User, backref='messages')
     body = TextField()
     send_date = DateTimeField(default=datetime.datetime.now)
 ```
 
-This allows you to write code like the following:
+这允许你像下面这样写代码::
 
-```
+```python
 >>> print(some_message.user.username)
 Some User
 
@@ -109,15 +116,18 @@ another message
 yet another message
 ```
 
-Note
+> ⚠注意
+>
+> 有关外键、模型之间的连接和关系的深入讨论，请参阅[Relationships and Joins](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#relationships)文档。
+>
+> 有关字段的完整文档，请参阅[Fields API notes](http://docs.peewee-orm.com/en/latest/peewee/api.html#fields-api)
+>
 
-Refer to the [Relationships and Joins](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#relationships) document for an in-depth discussion of foreign-keys, joins and relationships between models.
 
-For full documentation on fields, see the [Fields API notes](http://docs.peewee-orm.com/en/latest/peewee/api.html#fields-api)
 
-### Field types table
+### 字段类型表
 
-| Field Type          | Sqlite        | Postgresql       | MySQL            |
+| 字段类型            | Sqlite        | Postgresql       | MySQL            |
 | ------------------- | ------------- | ---------------- | ---------------- |
 | `AutoField`         | integer       | serial           | integer          |
 | `BigAutoField`      | integer       | bigserial        | bigint           |
@@ -145,35 +155,40 @@ For full documentation on fields, see the [Fields API notes](http://docs.peewee-
 | `BareField`         | untyped       | not supported    | not supported    |
 | `ForeignKeyField`   | integer       | integer          | integer          |
 
-Note
+> ⚠注意
+>
+> 在上面的表格中没有看到你要找的字段吗?创建自定义字段类型并在模型中使用它们是很容易的。
+>
+> - [创建自定义字段](http://docs.peewee-orm.com/en/latest/peewee/models.html#custom-fields)
+> - [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)，特别是' fields '参数。
+>
 
-Don’t see the field you’re looking for in the above table? It’s easy to create custom field types and use them with your models.
 
-- [Creating a custom field](http://docs.peewee-orm.com/en/latest/peewee/models.html#custom-fields)
-- [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database), particularly the `fields` parameter.
 
-### Field initialization arguments
+### 字段初始化参数
 
-Parameters accepted by all field types and their default values:
+所有字段类型接受的参数及其默认值:
 
-- `null = False` – allow null values
-- `index = False` – create an index on this column
-- `unique = False` – create a unique index on this column. See also [adding composite indexes](http://docs.peewee-orm.com/en/latest/peewee/models.html#model-indexes).
-- `column_name = None` – explicitly specify the column name in the database.
-- `default = None` – any value or callable to use as a default for uninitialized models
-- `primary_key = False` – primary key for the table
-- `constraints = None` - one or more constraints, e.g. `[Check('price > 0')]`
-- `sequence = None` – sequence name (if backend supports it)
-- `collation = None` – collation to use for ordering the field / index
-- `unindexed = False` – indicate field on virtual table should be unindexed (**SQLite-only**)
-- `choices = None` – optional iterable containing 2-tuples of `value`, `display`
-- `help_text = None` – string representing any helpful text for this field
-- `verbose_name = None` – string representing the “user-friendly” name of this field
-- `index_type = None` – specify a custom index-type, e.g. for Postgres you might specify a `'BRIN'` or `'GIN'` index.
+- `null = False` – 允许空值
+- `index = False` – 在此列上创建索引
+- `unique = False` – 在此列上创建唯一索引。参阅 [adding composite indexes](http://docs.peewee-orm.com/en/latest/peewee/models.html#model-indexes).
+- `column_name = None` –在数据库中显式地指定列名
+- `default = None` – 用于未初始化模型的任何值或可调用的默认值
+- `primary_key = False` – 表的主键
+- `constraints = None` - 一个或多个约束条件, e.g. `[Check('price > 0')]`
+- `sequence = None` – 序列名称(如果后端支持)
+- `collation = None` – 用于排序字段/索引的排序规则
+- `unindexed = False` – 指定虚拟表上的字段不应该被索引(**SQLite-only**)
+- `choices = None` – 包含 `value`, `display`的2元元组的可选迭代器
+- `help_text = None` – 表示此字段的帮助文本
+- `verbose_name = None` – 表示此字段“用户友好”名称的字符串
+- `index_type = None` – 指定一个自定义索引类型，例如对于Postgres，你可以指定一个`BRIN`或`GIN`索引。
 
-### Some fields take special parameters…
 
-| Field type                                                   | Special Parameters                                           |
+
+### 有些字段有特殊的参数…
+
+| 字段类型                                                     | 特殊参数                                                     |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | [`CharField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CharField) | `max_length`                                                 |
 | [`FixedCharField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#FixedCharField) | `max_length`                                                 |
@@ -185,35 +200,37 @@ Parameters accepted by all field types and their default values:
 | [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) | `model`, `field`, `backref`, `on_delete`, `on_update`, `deferrable` `lazy_load` |
 | [`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField) | `adapt`                                                      |
 
-Note
+> 注意
+>
+> `default`和`choices`都可以在数据库级别上分别实现为 *DEFAULT* 和 *CHECK CONSTRAINT* ，但是任何应用程序的更改都需要更改模式。正因如此，`default`完全是在python中实现的，而`choices`则不经过验证，只用于元数据目的而存在。
+>
+> 要添加数据库(服务器端)约束，请使用`constraints`参数。
 
-Both `default` and `choices` could be implemented at the database level as *DEFAULT* and *CHECK CONSTRAINT* respectively, but any application change would require a schema change. Because of this, `default` is implemented purely in python and `choices` are not validated but exist for metadata purposes only.
 
-To add database (server-side) constraints, use the `constraints` parameter.
 
-### Default field values
+### 默认字段值
 
-Peewee can provide default values for fields when objects are created. For example to have an `IntegerField` default to zero rather than `NULL`, you could declare the field with a default value:
+在创建对象时，Peewee可以为字段提供默认值。例如，让`IntegerField`默认值为0而不是`NULL`，你可以用默认值声明字段:
 
-```
+```python
 class Message(Model):
     context = TextField()
     read_count = IntegerField(default=0)
 ```
 
-In some instances it may make sense for the default value to be dynamic. A common scenario is using the current date and time. Peewee allows you to specify a function in these cases, whose return value will be used when the object is created. Note we only provide the function, we do not actually *call* it:
+在某些情况下，可以将默认值设置为动态的。一种常见的场景是使用当前日期和时间。Peewee允许您在这些情况下指定一个函数，该函数的返回值将在创建对象时使用。注意，我们只提供了函数，实际上并没有*调用*它:
 
-```
+```python
 class Message(Model):
     context = TextField()
     timestamp = DateTimeField(default=datetime.datetime.now)
 ```
 
-Note
+> 注意
+>
+> 如果你正在使用一个接受可变类型(list, dict，等等)的字段，并且想要提供一个默认值，将默认值包装在一个简单的函数中是一个好主意，这样多个模型实例就不会共享对相同底层对象的引用:
 
-If you are using a field that accepts a mutable type (list, dict, etc), and would like to provide a default, it is a good idea to wrap your default value in a simple function so that multiple model instances are not sharing a reference to the same underlying object:
-
-```
+```python
 def house_defaults():
     return {'beds': 0, 'baths': 0}
 
@@ -223,31 +240,33 @@ class House(Model):
     attributes = JSONField(default=house_defaults)
 ```
 
-The database can also provide the default value for a field. While peewee does not explicitly provide an API for setting a server-side default value, you can use the `constraints` parameter to specify the server default:
+数据库还可以为字段提供默认值。虽然peewee没有明确提供设置服务器端默认值的API，你可以使用`constraints`参数来指定服务器端默认值:
 
-```
+```python
 class Message(Model):
     context = TextField()
     timestamp = DateTimeField(constraints=[SQL('DEFAULT CURRENT_TIMESTAMP')])
 ```
 
-Note
+> 请注意
+>
+> **记住:**当使用`default`参数时，值是由Peewee设置的，而不是作为实际表和列定义的一部分。
 
-**Remember:** when using the `default` parameter, the values are set by Peewee rather than being a part of the actual table and column definition.
 
-### ForeignKeyField
 
-[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) is a special field type that allows one model to reference another. Typically a foreign key will contain the primary key of the model it relates to (but you can specify a particular column by specifying a `field`).
+### 外键字段
 
-Foreign keys allow data to be [normalized](http://en.wikipedia.org/wiki/Database_normalization). In our example models, there is a foreign key from `Tweet` to `User`. This means that all the users are stored in their own table, as are the tweets, and the foreign key from tweet to user allows each tweet to *point* to a particular user object.
+[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)是一种特殊的字段类型，允许一个模型引用另一个模型。通常，外键将包含与之相关的模型的主键(但您可以通过指定`field`来指定特定的列)。
 
-Note
+外键允许数据[规范化](http://en.wikipedia.org/wiki/Database_normalization)。在我们的示例模型中，有一个从`Tweet`到`User`的外键。这意味着所有用户都存储在自己的表中，推文也是如此，并且从tweet到user的外键允许每个tweet指向特定的user对象。
 
-Refer to the [Relationships and Joins](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#relationships) document for an in-depth discussion of foreign keys, joins and relationships between models.
+> 注意
+>
+> 参考[Relationships and Joins](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#relationships)文档，深入讨论外键、模型之间的连接和关系。
 
-In peewee, accessing the value of a [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) will return the entire related object, e.g.:
+在peewee中，访问[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)的值将返回整个相关对象，例如:
 
-```
+```python
 tweets = (Tweet
           .select(Tweet, User)
           .join(User)
@@ -256,13 +275,13 @@ for tweet in tweets:
     print(tweet.user.username, tweet.message)
 ```
 
-Note
+> 注意
+>
+> 在上面的示例中，`User`数据被选择为查询的一部分。有关此技术的更多示例，请参见[避免N+1](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#nplusone)文档。
 
-In the example above the `User` data was selected as part of the query. For more examples of this technique, see the [Avoiding N+1](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#nplusone) document.
+但是，如果我们没有选择`User`，那么将发出一个**额外的查询**来获取相关的`User`数据:
 
-If we did not select the `User`, though, then an **additional query** would be issued to fetch the associated `User` data:
-
-```
+```python
 tweets = Tweet.select().order_by(Tweet.created_date.desc())
 for tweet in tweets:
     # WARNING: an additional query will be issued for EACH tweet
@@ -270,9 +289,9 @@ for tweet in tweets:
     print(tweet.user.username, tweet.message)
 ```
 
-Sometimes you only need the associated primary key value from the foreign key column. In this case, Peewee follows the convention established by Django, of allowing you to access the raw foreign key value by appending `"_id"` to the foreign key field’s name:
+有时，您只需要外键列的相关主键值。在这种情况下，Peewee遵循Django建立的约定，允许你通过在外键字段的名称后面加上`"_id"`来访问原始的外键值:
 
-```
+```python
 tweets = Tweet.select()
 for tweet in tweets:
     # Instead of "tweet.user", we will just get the raw ID value stored
@@ -282,7 +301,7 @@ for tweet in tweets:
 
 To prevent accidentally resolving a foreign-key and triggering an additional query, [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) supports an initialization paramater `lazy_load` which, when disabled, behaves like the `"_id"` attribute. For example:
 
-```
+```python
 class Tweet(Model):
     # ... same fields, except we declare the user FK to have
     # lazy-load disabled:
@@ -308,11 +327,13 @@ for tweet in Tweet.select(Tweet, User).join(User):
 # user2  tweet from user1
 ```
 
-### ForeignKeyField Back-references
 
-[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) allows for a backreferencing property to be bound to the target model. Implicitly, this property will be named `classname_set`, where `classname` is the lowercase name of the class, but can be overridden using the parameter `backref`:
 
-```
+### 外键反向引用
+
+[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)允许反向引用属性绑定到目标模型。隐式地，这个属性将被命名为`classname_set`，其中`classname `是类的小写名称，但可以使用参数`backref`覆盖:
+
+```python
 class Message(Model):
     from_user = ForeignKeyField(User, backref='outbox')
     to_user = ForeignKeyField(User, backref='inbox')
@@ -327,27 +348,29 @@ for message in some_user.inbox:
     print(message)
 ```
 
-### DateTimeField, DateField and TimeField
 
-The three fields devoted to working with dates and times have special properties which allow access to things like the year, month, hour, etc.
 
-[`DateField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DateField) has properties for:
+### DateTimeField、DateField和TimeField
+
+这三个用于处理日期和时间的字段有特殊的属性，允许访问年、月、小时等。
+
+[`DateField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DateField) 属性:
 
 - `year`
 - `month`
 - `day`
 
-[`TimeField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#TimeField) has properties for:
+[`TimeField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#TimeField) 属性:
 
 - `hour`
 - `minute`
 - `second`
 
-[`DateTimeField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DateTimeField) has all of the above.
+[`DateTimeField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DateTimeField) 以上都有。
 
-These properties can be used just like any other expression. Let’s say we have an events calendar and want to highlight all the days in the current month that have an event attached:
+这些属性可以像任何其他表达式一样使用。假设我们有一个事件日历，想要突出显示当前月份中有一个事件的所有日子:
 
-```
+```python
 # Get the current time.
 now = datetime.datetime.now()
 
@@ -357,17 +380,19 @@ Event.select(Event.event_date.day.alias('day')).where(
     (Event.event_date.month == now.month))
 ```
 
-Note
+> 注意
+>
+> SQLite没有日期类型，所以日期存储在格式化的文本列中。为了确保可以进行比较，需要对日期进行格式化，以便按字典顺序排序。这就是为什么默认情况下，它们被存储为`YYYY-MM-DD HH:MM:SS`。
 
-SQLite does not have a native date type, so dates are stored in formatted text columns. To ensure that comparisons work correctly, the dates need to be formatted so they are sorted lexicographically. That is why they are stored, by default, as `YYYY-MM-DD HH:MM:SS`.
 
-### BitField and BigBitField
 
-The [`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField) and [`BigBitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BigBitField) are new as of 3.0.0. The former provides a subclass of [`IntegerField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#IntegerField) that is suitable for storing feature toggles as an integer bitmask. The latter is suitable for storing a bitmap for a large data-set, e.g. expressing membership or bitmap-type data.
+### BitField 和 BigBitField
 
-As an example of using [`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField), let’s say we have a *Post* model and we wish to store certain True/False flags about how the post. We could store all these feature toggles in their own [`BooleanField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BooleanField) objects, or we could use [`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField) instead:
+[`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField)和[`BigBitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BigBitField)在3.0.0中新增。前者提供了[`IntegerField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#IntegerField)的一个子类，适合将特性切换存储为整数位掩码。后者适用于存储大型数据集的位图，例如表示成员或位图类型的数据。
 
-```
+作为使用[`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField)的一个例子，让我们假设我们有一个*Post*模型，我们希望存储关于Post的某些True/False标志。我们可以将所有这些特性切换存储在它们自己的[`boolean`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BooleanField)对象中，或者我们可以使用[`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField)来代替:
+
+```python
 class Post(Model):
     content = TextField()
     flags = BitField()
@@ -378,9 +403,9 @@ class Post(Model):
     is_deleted = flags.flag(8)
 ```
 
-Using these flags is quite simple:
+使用这些标记非常简单:
 
-```
+```python
 >>> p = Post()
 >>> p.is_sticky = True
 >>> p.is_minimized = True
@@ -392,9 +417,9 @@ False
 True
 ```
 
-We can also use the flags on the Post class to build expressions in queries:
+我们还可以使用Post类上的标记在查询中构建表达式:
 
-```
+```python
 # Generates a WHERE clause that looks like:
 # WHERE (post.flags & 1 != 0)
 favorites = Post.select().where(Post.is_favorite)
@@ -403,11 +428,11 @@ favorites = Post.select().where(Post.is_favorite)
 sticky_faves = Post.select().where(Post.is_sticky & Post.is_favorite)
 ```
 
-Since the [`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField) is stored in an integer, there is a maximum of 64 flags you can represent (64-bits is common size of integer column). For storing arbitrarily large bitmaps, you can instead use [`BigBitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BigBitField), which uses an automatically managed buffer of bytes, stored in a [`BlobField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BlobField).
+因为[`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField)是以整数形式存储的，所以最多可以表示64个标志(64位是整数列的通用大小)。为了存储任意大的位图，你可以使用[`BigBitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BigBitField)，它使用一个自动管理的字节缓冲区，存储在[`BlobField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BlobField)。
 
-When bulk-updating one or more bits in a [`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField), you can use bitwise operators to set or clear one or more bits:
+当批量更新[`BitField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BitField)中的一个或多个位时，你可以使用位操作符来设置或清除一个或多个位:
 
-```
+```python
 # Set the 4th bit on all Post objects.
 Post.update(flags=Post.flags | 8).execute()
 
@@ -417,7 +442,9 @@ Post.update(flags=Post.flags & ~(1 | 4)).execute()
 
 For simple operations, the flags provide handy `set()` and `clear()` methods for setting or clearing an individual bit:
 
-```
+对于简单的操作，标记提供了方便的`set()`和`clear()`方法来设置或清除单个位:
+
+```python
 # Set the "is_deleted" bit on all posts.
 Post.update(flags=Post.is_deleted.set()).execute()
 
@@ -425,9 +452,9 @@ Post.update(flags=Post.is_deleted.set()).execute()
 Post.update(flags=Post.is_deleted.clear()).execute()
 ```
 
-Example usage:
+示例使用:
 
-```
+```python
 class Bitmap(Model):
     data = BigBitField()
 
@@ -452,15 +479,19 @@ assert bitmap.data.toggle_bit(63) is True
 assert bitmap.data.is_set(63)
 ```
 
-### BareField
 
-The [`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField) class is intended to be used only with SQLite. Since SQLite uses dynamic typing and data-types are not enforced, it can be perfectly fine to declare fields without *any* data-type. In those cases you can use [`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField). It is also common for SQLite virtual tables to use meta-columns or untyped columns, so for those cases as well you may wish to use an untyped field (although for full-text search, you should use [`SearchField`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SearchField) instead!).
+
+### BareField
 
 [`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField) accepts a special parameter `adapt`. This parameter is a function that takes a value coming from the database and converts it into the appropriate Python type. For instance, if you have a virtual table with an un-typed column but you know that it will return `int` objects, you can specify `adapt=int`.
 
-Example:
+[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)类仅用于SQLite。由于SQLite使用动态类型，而数据类型没有被强制执行，所以可以很好的声明没有任何数据类型的字段。在这些情况下，您可以使用[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)。使用meta-columns或无类型的列SQLite虚拟表也是常见的，所以对于这些情况下,您可能希望使用一个无类型字段(尽管对于全文搜索,您应该使用[`SearchField`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html)作为替换 )。
 
-```
+[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)接受一个特殊参数`adapt `。此参数是一个函数，它接受来自数据库的值，并将其转换为适当的Python类型。例如，如果你有一个包含无类型列的虚拟表，但你知道它将返回`int`对象，你可以指定`adapt=int`。
+
+例子:
+
+```python
 db = SqliteDatabase(':memory:')
 
 class Junk(Model):
@@ -477,29 +508,30 @@ Junk.create(anything=3.14159)
 
 
 
-### Creating a custom field
+### 创建自定义字段
 
-It is easy to add support for custom field types in peewee. In this example we will create a UUID field for postgresql (which has a native UUID column type).
+在peewee中支持很方便的添加自定义字段类型的支持。在这个例子中，我们将为postgresql创建一个UUID字段(它有一个本地的UUID列类型)。
 
-To add a custom field type you need to first identify what type of column the field data will be stored in. If you just want to add python behavior atop, say, a decimal field (for instance to make a currency field) you would just subclass [`DecimalField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DecimalField). On the other hand, if the database offers a custom column type you will need to let peewee know. This is controlled by the `Field.field_type` attribute.
+要添加自定义字段类型，首先需要确定字段数据将存储在哪种类型的列中。如果你只是想添加python行为，比如，一个十进制字段(例如创建一个货币字段)，你只需要子类[`DecimalField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DecimalField)。另一方面，如果数据库提供了定制的列类型，则需要让peewee知道。这是由`Filed.field_type`属性控制。
 
-Note
+> 注意
+>
+> Peewee使用[`UUIDField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#UUIDField)发送，下面的代码只是作为示例。
 
-Peewee ships with a [`UUIDField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#UUIDField), the following code is intended only as an example.
+让我们从定义UUID字段开始:
 
-Let’s start by defining our UUID field:
-
-```
+```python
 class UUIDField(Field):
     field_type = 'uuid'
 ```
 
-We will store the UUIDs in a native UUID column. Since psycopg2 treats the data as a string by default, we will add two methods to the field to handle:
+我们将把UUID存储在本地UUID列中。由于psycopg2默认情况下将数据作为字符串处理，我们将在字段中添加两个要处理的方法:
 
-- The data coming out of the database to be used in our application
-- The data from our python app going into the database
+- 来自数据库的数据将用于我们的应用程序
 
-```
+- 数据从我们的python应用程序进入数据库
+
+```python
 import uuid
 
 class UUIDField(Field):
@@ -512,43 +544,43 @@ class UUIDField(Field):
         return uuid.UUID(value) # convert hex string to UUID
 ```
 
-**This step is optional.** By default, the `field_type` value will be used for the columns data-type in the database schema. If you need to support multiple databases which use different data-types for your field-data, we need to let the database know how to map this *uuid* label to an actual *uuid* column type in the database. Specify the overrides in the [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database) constructor:
+**此步骤是可选的。**默认情况下，`field_type`值将用于数据库模式中的列数据类型。如果你需要支持使用不同数据类型的字段数据的多个数据库，我们需要让数据库知道如何将这个*uuid*标签映射到数据库中的实际*uuid*列类型。在[`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)构造函数中指定重写:
 
-> ```
-> # Postgres, we use UUID data-type.
-> db = PostgresqlDatabase('my_db', field_types={'uuid': 'uuid'})
-> 
-> # Sqlite doesn't have a UUID type, so we use text type.
-> db = SqliteDatabase('my_db', field_types={'uuid': 'text'})
-> ```
+```python
+# Postgres, we use UUID data-type.
+db = PostgresqlDatabase('my_db', field_types={'uuid': 'uuid'})
 
-That is it! Some fields may support exotic operations, like the postgresql HStore field acts like a key/value store and has custom operators for things like *contains* and *update*. You can specify [custom operations](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#custom-operators) as well. For example code, check out the source code for the [`HStoreField`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#HStoreField), in `playhouse.postgres_ext`.
-
-### Field-naming conflicts
-
-[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) classes implement a number of class- and instance-methods, for example [`Model.save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) or [`Model.create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create). If you declare a field whose name coincides with a model method, it could cause problems. Consider:
-
+# Sqlite doesn't have a UUID type, so we use text type.
+db = SqliteDatabase('my_db', field_types={'uuid': 'text'})
 ```
+
+就是它!有些字段可能支持外来操作，比如postgresql的HStore字段就像一个键/值存储，并且有自定义的操作符，比如*contains*和*update*。您还可以指定[自定义操作](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#custom-operators)。例如代码，请在`playhouse.postgres_ext`中查看['`HStoreField`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#HStoreField)的源代码。
+
+### 字段命名冲突
+
+[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html模型)类实现的类实例方法,例如[`Model.save ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)或[`Model.create ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)。如果您声明的字段名称与模型方法一致，则可能会导致问题。考虑:
+
+```python
 class LogEntry(Model):
     event = TextField()
     create = TimestampField()  # Uh-oh.
     update = TimestampField()  # Uh-oh.
 ```
 
-To avoid this problem while still using the desired column name in the database schema, explicitly specify the `column_name` while providing an alternative name for the field attribute:
+为了避免在数据库模式中仍然使用所需的列名时出现这个问题，可以显式指定`column_name`，同时为字段属性提供另一个名称:
 
-```
+```python
 class LogEntry(Model):
     event = TextField()
     create_ = TimestampField(column_name='create')
     update_ = TimestampField(column_name='update')
 ```
 
-## Creating model tables
+## 创建模型表
 
-In order to start using our models, its necessary to open a connection to the database and create the tables first. Peewee will run the necessary *CREATE TABLE* queries, additionally creating any constraints and indexes.
+为了开始使用我们的模型，有必要先打开到数据库的连接并创建表。Peewee将运行必要的*CREATE TABLE*查询，另外创建任何约束和索引。
 
-```
+```python
 # Connect to our database.
 db.connect()
 
@@ -556,26 +588,26 @@ db.connect()
 db.create_tables([User, Tweet])
 ```
 
-Note
+> 注意
+>
+> 严格地说，没有必要调用[`connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect)，但显式调用是一个好做法。这样，如果出现错误，错误发生在连接步骤，而不是在某个任意时间之后。
 
-Strictly speaking, it is not necessary to call [`connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect) but it is good practice to be explicit. That way if something goes wrong, the error occurs at the connect step, rather than some arbitrary time later.
+> 注意
+>
+> 默认情况下，Peewee在创建表时包含`IF NOT EXISTS`子句。如果你想禁用它，指定`safe=False`。
 
-Note
+在你创建了你的表之后，如果你选择修改你的数据库模式（schema）(通过添加，删除或以其他方式改变列)，你需要:
 
-By default, Peewee includes an `IF NOT EXISTS` clause when creating tables. If you want to disable this, specify `safe=False`.
-
-After you have created your tables, if you choose to modify your database schema (by adding, removing or otherwise changing the columns) you will need to either:
-
-- Drop the table and re-create it.
-- Run one or more *ALTER TABLE* queries. Peewee comes with a schema migration tool which can greatly simplify this. Check the [schema migrations](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#migrate) docs for details.
+- 删除表并重新创建。 
+- 执行一个或多个*ALTER TABLE*查询。Peewee附带了一个模式迁移工具，可以极大地简化这个过程。请查看[schema migrations](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#migrate)文档了解详细信息。
 
 
 
-## Model options and table metadata
+## 模型选项和表的元数据（metadata）
 
-In order not to pollute the model namespace, model-specific configuration is placed in a special class called *Meta* (a convention borrowed from the django framework):
+为了不污染模型命名空间，特定于模型的配置被放在一个名为*Meta*的特殊类中(这是从django框架借来的约定):
 
-```
+```python
 from peewee import *
 
 contacts_db = SqliteDatabase('contacts.db')
@@ -587,15 +619,16 @@ class Person(Model):
         database = contacts_db
 ```
 
-This instructs peewee that whenever a query is executed on *Person* to use the contacts database.
+这指示peewee，每当对*Person*执行查询时，都要使用`contact.db`数据库。
 
-Note
+> 注意
+>
+> 看看[示例模型](http://docs.peewee-orm.com/en/latest/peewee/models.html#blog-models)——您会注意到我们创建了一个定义数据库的“BaseModel”，然后进行了扩展。
+> 这是定义数据库和创建模型的首选方法。
 
-Take a look at [the sample models](http://docs.peewee-orm.com/en/latest/peewee/models.html#blog-models) - you will notice that we created a `BaseModel` that defined the database, and then extended. This is the preferred way to define a database and create models.
+一旦定义了类，就不应该访问`ModelClass`，而使用`ModelClass._meta`:
 
-Once the class is defined, you should not access `ModelClass.Meta`, but instead use `ModelClass._meta`:
-
-```
+```python
 >>> Person.Meta
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
@@ -605,9 +638,9 @@ AttributeError: type object 'Person' has no attribute 'Meta'
 <peewee.ModelOptions object at 0x7f51a2f03790>
 ```
 
-The `ModelOptions` class implements several methods which may be of use for retrieving model metadata (such as lists of fields, foreign key relationships, and more).
+`ModelOptions`类实现了几个可能用于检索模型元数据的方法(如字段列表、外键关系等)。
 
-```
+```python
 >>> Person._meta.fields
 {'id': <peewee.AutoField object at 0x7f51a2e92750>,
  'name': <peewee.CharField object at 0x7f51a2f0a510>}
@@ -619,28 +652,28 @@ The `ModelOptions` class implements several methods which may be of use for retr
 <peewee.SqliteDatabase object at 0x7f519bff6dd0>
 ```
 
-There are several options you can specify as `Meta` attributes. While most options are inheritable, some are table-specific and will not be inherited by subclasses.
+有几个选项你可以指定为`Meta`属性。虽然大多数选项是可继承的，但有些选项是特定于表的，不会被子类继承。
 
-| Option               | Meaning                                                      | Inheritable? |
-| -------------------- | ------------------------------------------------------------ | ------------ |
-| `database`           | database for model                                           | yes          |
-| `table_name`         | name of the table to store data                              | no           |
-| `table_function`     | function to generate table name dynamically                  | yes          |
-| `indexes`            | a list of fields to index                                    | yes          |
-| `primary_key`        | a [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey) instance | yes          |
-| `constraints`        | a list of table constraints                                  | yes          |
-| `schema`             | the database schema for the model                            | yes          |
-| `only_save_dirty`    | when calling model.save(), only save dirty fields            | yes          |
-| `options`            | dictionary of options for create table extensions            | yes          |
-| `table_settings`     | list of setting strings to go after close parentheses        | yes          |
-| `temporary`          | indicate temporary table                                     | yes          |
-| `legacy_table_names` | use legacy table name generation (enabled by default)        | yes          |
-| `depends_on`         | indicate this table depends on another for creation          | no           |
-| `without_rowid`      | indicate table should not have rowid (SQLite only)           | no           |
+| 选项                 | 意义                                                         | 能否继承? |
+| -------------------- | ------------------------------------------------------------ | --------- |
+| `database`           | database for model                                           | yes       |
+| `table_name`         | name of the table to store data                              | no        |
+| `table_function`     | function to generate table name dynamically                  | yes       |
+| `indexes`            | a list of fields to index                                    | yes       |
+| `primary_key`        | a [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey) instance | yes       |
+| `constraints`        | a list of table constraints                                  | yes       |
+| `schema`             | the database schema for the model                            | yes       |
+| `only_save_dirty`    | when calling model.save(), only save dirty fields            | yes       |
+| `options`            | dictionary of options for create table extensions            | yes       |
+| `table_settings`     | list of setting strings to go after close parentheses        | yes       |
+| `temporary`          | indicate temporary table                                     | yes       |
+| `legacy_table_names` | use legacy table name generation (enabled by default)        | yes       |
+| `depends_on`         | indicate this table depends on another for creation          | no        |
+| `without_rowid`      | indicate table should not have rowid (SQLite only)           | no        |
 
-Here is an example showing inheritable versus non-inheritable attributes:
+下面是一个显示可继承属性和不可继承属性的示例:
 
-```
+```python
 >>> db = SqliteDatabase(':memory:')
 >>> class ModelOne(Model):
 ...     class Meta:
@@ -658,13 +691,11 @@ False
 
 ### Meta.primary_key
 
-The `Meta.primary_key` attribute is used to specify either a [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey) or to indicate that the model has *no* primary key. Composite primary keys are discussed in more detail here: [Composite primary keys](http://docs.peewee-orm.com/en/latest/peewee/models.html#composite-key).
+`Meta.primary_key`属性用于指定[`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey)或表示模型无主键。复合主键在这里有更详细的讨论:[复合主键](http://docs.peewee-orm.com/en/latest/peewee/models.html#composite-key)。
 
-To indicate that a model should not have a primary key, then set `primary_key = False`.
+要指出模型不应该有主键，则设置`primary_key = False`。
 
-Examples:
-
-```
+```python
 class BlogToTag(Model):
     """A simple "through" table for many-to-many relationship."""
     blog = ForeignKeyField(Blog)
@@ -682,11 +713,11 @@ class NoPrimaryKey(Model):
 
 
 
-### Table Names
+### 表的名字
 
-By default Peewee will automatically generate a table name based on the name of your model class. The way the table-name is generated depends on the value of `Meta.legacy_table_names`. By default, `legacy_table_names=True` so as to avoid breaking backwards-compatibility. However, if you wish to use the new and improved table-name generation, you can specify `legacy_table_names=False`.
+默认情况下，Peewee会根据模型类的名称自动生成一个表名。表名的生成方式取决于`Meta.legacy_table_names`的值。默认情况下，`legacy_table_names=True`以避免破坏向后兼容性。但是，如果您希望使用新的和改进的表名生成，您可以指定`legacy_table_names=False`。
 
-This table shows the differences in how a model name is converted to a SQL table name, depending on the value of `legacy_table_names`:
+根据`legacy_table_names`的值，这个表显示了模型名转换为SQL表名的不同之处:
 
 | Model name       | legacy_table_names=True | legacy_table_names=False (new) |
 | ---------------- | ----------------------- | ------------------------------ |
@@ -697,23 +728,23 @@ This table shows the differences in how a model name is converted to a SQL table
 | mixedCamelCase   | mixedcamelcase          | mixed_camel_case               |
 | Name2Numbers3XYZ | name2numbers3xyz        | name2_numbers3_xyz             |
 
-Attention
+> 注意
+>
+> 为了保持向后兼容性，当前版本(Peewee 3.x)默认指定`legacy_table_names=True`。
+>
+> 在下一个主要版本(Peewee 4.0)中，`legacy_table_names`的默认值为`False`。
 
-To preserve backwards-compatibility, the current release (Peewee 3.x) specifies `legacy_table_names=True` by default.
+要显式地为模型类指定表名，请使用`table_name`元选项。这个特性对于处理现有的数据库模式很有用，这些模式可能使用了笨拙的命名约定:
 
-In the next major release (Peewee 4.0), `legacy_table_names` will have a default value of `False`.
-
-To explicitly specify the table name for a model class, use the `table_name` Meta option. This feature can be useful for dealing with pre-existing database schemas that may have used awkward naming conventions:
-
-```
+```python
 class UserProfile(Model):
     class Meta:
         table_name = 'user_profile_tbl'
 ```
 
-If you wish to implement your own naming convention, you can specify the `table_function` Meta option. This function will be called with your model class and should return the desired table name as a string. Suppose our company specifies that table names should be lower-cased and end with “_tbl”, we can implement this as a table function:
+如果你想实现自己的命名约定，你可以指定`table_function`元选项。这个函数将与您的模型类一起调用，并且应该以字符串的形式返回所需的表名。假设我们的公司指定表名应该是小写的，并且以“_tbl”结尾，我们可以将其作为一个表函数来实现:
 
-```
+```python
 def make_table_name(model_class):
     model_name = model_class.__name__
     return model_name.lower() + '_tbl'
