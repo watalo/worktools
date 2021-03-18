@@ -37,6 +37,7 @@ class Project(BaseModel):
     member  = ForeignKeyField(Member, backref='projs')
     status  = CharField()
     scheme  = CharField()
+    info = CharField()
 
     def progress(self):
         pass
@@ -157,16 +158,23 @@ def delete_memb(name_):
         return '【错误】：1.成员已删除；2.已设置未待定'
 
 
-
-        
-
-
-
-
 def delete_prod():
+    '''
+    删除产品
+        通过名字定位，但是如果有product信息不能删除，应该是只能删除处于营销状态的，但是status又没有固定啊。
+        是不是应该给Project增加一个属性，将status固定住，然后增加一个info来详细描述营销进展。不行啊，还是
+        得继续看文档哦。
+    '''
+
+
     pass
 
 def delete_proj():
+    '''
+    
+    '''
+
+
     pass
 
 
