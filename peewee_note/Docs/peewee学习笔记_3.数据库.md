@@ -696,7 +696,7 @@ def prepare_database():
 
 - 连接数上限设置。
 
-```
+```python
 from playhouse.pool import PooledPostgresqlExtDatabase
 
 db = PooledPostgresqlExtDatabase(
@@ -720,6 +720,98 @@ class BaseModel(Model):
 
 参考： [Connection pool](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#pool)  或者 [playhouse](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#playhouse) .
 
+### 连接池
+
+pool模块包含许多数据库类，它们为PostgreSQL、MySQL和SQLite数据库提供连接池。池的工作方式是覆盖数据库类打开和关闭后端连接的方法。池可以指定回收连接的超时时间，以及打开连接数量的上限。
+
+在多线程应用程序中，最多打开max_connections。每个线程(或者，如果使用gevent，则是greenlet)将拥有自己的连接。
+
+在单线程应用程序中，只会创建一个连接。它将继续循环使用，直到超过时限或显式关闭(使用`manual_close()`)。
+
+默认情况下，您的应用程序所需要做的就是确保在您完成连接时关闭连接，并且连接将返回到池中。对于web应用程序，这通常意味着在请求开始时，您将打开一个连接，当您返回一个响应时，您将关闭连接。
+
+简单的Postgres池示例代码:
+
+```python
+# Use the special postgresql extensions.
+from playhouse.pool import PooledPostgresqlExtDatabase
+
+db = PooledPostgresqlExtDatabase(
+    'my_app',
+    max_connections=32,
+    stale_timeout=300,  # 5 minutes.
+    user='postgres')
+
+class BaseModel(Model):
+    class Meta:
+        database = db
+```
+
+### Pool APIs
+
+- *class*`PooledDatabase`(*database***[**, *max_connections=20***[**, *stale_timeout=None***[**, *timeout=None***[**,kwargs]]]])
+
+  参数:	
+
+  - **database** (*str*) – 数据库文件名.
+  - **max_connections** (*int*) – 最大连接数. Provide `None` for unlimited.
+
+  - **stale_timeout** (*int*) – 允许使用连接的秒数。
+
+  - **timeout** (*int*) – 池满时阻塞的秒数。默认情况下，当池满时，peewee不会阻塞，而只是抛出一个异常。若要无限期地阻塞，则将此值设置为`0`。
+
+  - **kwargs** – 传递给数据库类的任意关键字参数。
+
+   应当作为 [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database)的子类使用的Mixin类。
+
+  > Note
+  >
+  > 当连接超过其stale_timeout时，连接将不会被关闭。相反，只有在请求新的连接时才关闭过期连接。
+
+  > Note
+  >
+  > 如果打开的连接数超过max_connections，将引发ValueError。
+
+  - `manual_close()`
+
+    关闭当前打开的连接，但不将其返回到连接池。
+
+  - `close_idle()`
+
+    关闭所有空闲的连接。这不包括任何当前正在使用的连接——只包括那些先前创建但后来被返回到池中的连接。
+
+  - `close_stale`(**[***age=600***]**)
+
+    参数:**age** (*int*) – 应该被认为过期的连接的年龄（age）.
+
+    返回:关闭的连接数。
+
+    关闭正在使用但超过给定age的连接。 **谨慎使用**
+
+  - `close_all()`
+
+    关闭所有连接。这包括当时可能正在使用的任何连接。 **谨慎使用**
+
+- *class*`PooledPostgresqlDatabase`
+
+  [`PostgresqlDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#PostgresqlDatabase)的子类，混合在[`PooledDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledDatabase)帮助器。
+
+- *class*`PooledPostgresqlExtDatabase`
+
+  [`PostgresqlExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PostgresqlExtDatabase)的子类，混合在[`PooledDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledDatabase)帮助程序中。[`PostgresqlExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PostgresqlExtDatabase)是[Postgresql Extensions](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#postgres-ext)模块的一部分，并提供了对许多Postgresql特有特性的支持。
+
+- *class*`PooledMySQLDatabase`
+
+  [`MySQLDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#MySQLDatabase)的子类，它混合在[`PooledDatabase`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#PooledDatabase)帮助器中。
+
+- *class*`PooledSqliteDatabase`
+
+  SQLite应用程序的持久连接。
+
+- *class*`PooledSqliteExtDatabase`
+
+  SQLite应用程序的持久连接，使用[SQLite Extensions](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#sqlite-ext)高级数据库驱动程序[`SqliteExtDatabase`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html#SqliteExtDatabase)。
+
 
 
 ## 测试Peewee应用
@@ -734,6 +826,15 @@ class BaseModel(Model):
 - [`model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind)，这是一个一次性操作，它将模型(及其可选的依赖项)绑定到给定的数据库。
 
 根据您的用例，其中一个选项可能更有意义。对于下面的例子，我将使用[`Model.bind()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bind)。
+
+> `bind`(*models***[**, *bind_refs=True***[**, *bind_backrefs=True***]****]**)
+>
+> | Parameters: | **models** (*list*) – One or more [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) classes to bind. |
+> | :---------- | ------------------------------------------------------------ |
+> |             | **bind_refs** (*bool*) – Bind related models.                |
+> |             | **bind_backrefs** (*bool*) – Bind back-reference related models. |
+>
+> Bind the given list of models, and specified relations, to the database.
 
 测试用例设置示例:
 
