@@ -254,7 +254,7 @@ class Message(Model):
 
 
 
-### 外键字段
+### 外键字段ForeignKeyField
 
 [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)是一种特殊的字段类型，允许一个模型引用另一个模型。通常，外键将包含与之相关的模型的主键(但您可以通过指定`field`来指定特定的列)。
 
@@ -329,7 +329,7 @@ for tweet in Tweet.select(Tweet, User).join(User):
 
 
 
-### 外键反向引用
+### 外键反向引用(back-refences)
 
 [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)允许反向引用属性绑定到目标模型。隐式地，这个属性将被命名为`classname_set`，其中`classname `是类的小写名称，但可以使用参数`backref`覆盖:
 
@@ -556,6 +556,8 @@ db = SqliteDatabase('my_db', field_types={'uuid': 'text'})
 
 就是它!有些字段可能支持外来操作，比如postgresql的HStore字段就像一个键/值存储，并且有自定义的操作符，比如*contains*和*update*。您还可以指定[自定义操作](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#custom-operators)。例如代码，请在`playhouse.postgres_ext`中查看['`HStoreField`](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#HStoreField)的源代码。
 
+
+
 ### 字段命名冲突
 
 [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html模型)类实现的类实例方法,例如[`Model.save ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)或[`Model.create ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)。如果您声明的字段名称与模型方法一致，则可能会导致问题。考虑:
@@ -575,6 +577,8 @@ class LogEntry(Model):
     create_ = TimestampField(column_name='create')
     update_ = TimestampField(column_name='update')
 ```
+
+
 
 ## 创建模型表
 
@@ -762,23 +766,23 @@ class UserProfile(BaseModel):
 
 
 
-## Indexes and Constraints
+## 索引和约束
 
-Peewee can create indexes on single or multiple columns, optionally including a *UNIQUE* constraint. Peewee also supports user-defined constraints on both models and fields.
+Peewee可以在单个或多个列上创建索引，可以选择包含一个*UNIQUE*约束。Peewee还支持对模型和字段的用户定义约束。
 
-### Single-column indexes and constraints
+### 单列索引和约束
 
-Single column indexes are defined using field initialization parameters. The following example adds a unique index on the *username* field, and a normal index on the *email* field:
+使用字段初始化参数定义单列索引。在`username`字段添加唯一索引，在`email`字段添加普通索引，示例如下:
 
-```
+```python
 class User(Model):
     username = CharField(unique=True)
     email = CharField(index=True)
 ```
 
-To add a user-defined constraint on a column, you can pass it in using the `constraints` parameter. You may wish to specify a default value as part of the schema, or add a `CHECK` constraint, for example:
+要在列上添加用户定义的约束，可以使用`constraints`参数传入。你可能希望指定一个默认值作为模式的一部分，或者添加一个` CHECK `约束，例如:
 
-```
+```python
 class Product(Model):
     name = CharField(unique=True)
     price = DecimalField(constraints=[Check('price < 10000')])
@@ -786,11 +790,11 @@ class Product(Model):
         constraints=[SQL("DEFAULT (datetime('now'))")])
 ```
 
-### Multi-column indexes
+### 多列索引
 
-Multi-column indexes may be defined as *Meta* attributes using a nested tuple. Each database index is a 2-tuple, the first part of which is a tuple of the names of the fields, the second part a boolean indicating whether the index should be unique.
+可以使用嵌套的元组将多列索引定义为`Meta`属性。每个数据库索引都是一个2元组，第一部分是字段名的元组，第二部分是一个布尔值，指示索引是否应该是唯一的。
 
-```
+```python
 class Transaction(Model):
     from_acct = CharField()
     to_acct = CharField()
@@ -807,24 +811,27 @@ class Transaction(Model):
         )
 ```
 
-Note
+> 请注意
+>
+> 如果你的索引元组只包含一个条目，记得在后面加一个**逗号**:
+>
+> ```python
+> class Meta:
+>     indexes = (
+>         (('first_name', 'last_name'), True),  # Note the trailing comma!
+>     )
+> ```
+>
 
-Remember to add a **trailing comma** if your tuple of indexes contains only one item:
 
-```
-class Meta:
-    indexes = (
-        (('first_name', 'last_name'), True),  # Note the trailing comma!
-    )
-```
 
-### Advanced Index Creation
+### 高级索引生成器
 
-Peewee supports a more structured API for declaring indexes on a model using the [`Model.add_index()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.add_index) method or by directly using the [`ModelIndex`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ModelIndex) helper class.
+Peewee支持使用[`model .add_index() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.add_index)方法或直接使用[`ModelIndex`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ModelIndex)助手类等更结构化的API来声明模型上的索引。
 
-Examples:
+示例:
 
-```
+```python
 class Article(Model):
     name = TextField()
     timestamp = TimestampField()
@@ -846,32 +853,34 @@ idx = Article.index(
 Article.add_index(idx)
 ```
 
-Warning
+> 警告
+>
+> SQLite不支持参数化的`CREATE INDEX`查询。这意味着，当使用SQLite创建涉及表达式或标量值的索引时，您需要使用[`SQL `](http://docs.peewee-orm.com/en/latest/peewee/api.html#SQL)助手声明索引:
 
-SQLite does not support parameterized `CREATE INDEX` queries. This means that when using SQLite to create an index that involves an expression or scalar value, you will need to declare the index using the [`SQL`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SQL) helper:
-
-```
+```python
 # SQLite does not support parameterized CREATE INDEX queries, so
 # we declare it manually.
 Article.add_index(SQL('CREATE INDEX ...'))
 ```
 
-See [`add_index()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.add_index) for details.
+详情请参见[`add_index()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.add_index)。
 
-For more information, see:
+更多信息，请参见:
 
 - [`Model.add_index()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.add_index)
 - [`Model.index()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.index)
 - [`ModelIndex`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ModelIndex)
 - [`Index`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Index)
 
-### Table constraints
 
-Peewee allows you to add arbitrary constraints to your [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model), that will be part of the table definition when the schema is created.
 
-For instance, suppose you have a *people* table with a composite primary key of two columns, the person’s first and last name. You wish to have another table relate to the *people* table, and to do this, you will need to define a foreign key constraint:
+### 表格限制
 
-```
+Peewee允许您向[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model)添加任意约束，当创建模式时，这将成为表定义的一部分。
+
+例如，假设您有一个*people*表，其中有两列的复合主键，即人名的姓和名。你希望有另一个表与*people*表相关，为了做到这一点，你需要定义一个外键约束:
+
+```python
 class Person(Model):
     first = CharField()
     last = CharField()
@@ -889,9 +898,9 @@ class Pet(Model):
                            'REFERENCES person(first, last)')]
 ```
 
-You can also implement `CHECK` constraints at the table level:
+你也可以在表这个层级实现`CHECK`约束:
 
-```
+```python
 class Product(Model):
     name = CharField(unique=True)
     price = DecimalField()
@@ -902,13 +911,13 @@ class Product(Model):
 
 
 
-## Primary Keys, Composite Keys and other Tricks
+## 主键，组合键和其他技巧
 
-The [`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField) is used to identify an auto-incrementing integer primary key. If you do not specify a primary key, Peewee will automatically create an auto-incrementing primary key named “id”.
+[`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField)用于标识一个自动递增的整数主键。如果您没有指定主键，Peewee将自动创建一个名为`id`的自动递增主键。
 
-To specify an auto-incrementing ID using a different field name, you can write:
+要使用不同的字段名指定一个自动递增的ID，你可以这样写:
 
-```
+```python
 class Event(Model):
     event_id = AutoField()  # Event.event_id will be auto-incrementing PK.
     name = CharField()
@@ -916,34 +925,34 @@ class Event(Model):
     metadata = BlobField()
 ```
 
-You can identify a different field as the primary key, in which case an “id” column will not be created. In this example we will use a person’s email address as the primary key:
+您可以将不同的字段标识为主键，在这种情况下，将不会创建`id`列。在这个例子中，我们将使用一个人的电子邮件地址作为主键:
 
-```
+```python
 class Person(Model):
     email = CharField(primary_key=True)
     name = TextField()
     dob = DateField()
 ```
 
-Warning
+> 警告
+>
+> 我经常看到人们写以下代码，期望一个自动递增的整数主键:
 
-I frequently see people write the following, expecting an auto-incrementing integer primary key:
-
-```
+```python
 class MyModel(Model):
     id = IntegerField(primary_key=True)
 ```
 
-Peewee understands the above model declaration as a model with an integer primary key, but the value of that ID is determined by the application. To create an auto-incrementing integer primary key, you would instead write:
+Peewee将上述模型声明理解为一个具有整数主键的模型，但是该ID的值由应用程序确定。要创建一个自动递增的integer主键，你可以这样写:
 
-```
+```python
 class MyModel(Model):
     id = AutoField()  # primary_key=True is implied.
 ```
 
-Composite primary keys can be declared using [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey). Note that doing this may cause issues with [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField), as Peewee does not support the concept of a “composite foreign-key”. As such, I’ve found it only advisable to use composite primary keys in a handful of situations, such as trivial many-to-many junction tables:
+复合主键可以使用[`CompositeKey`]声明(http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey)。注意，这样做可能会导致[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)的问题，因为Peewee不支持“复合外键”的概念。因此，我发现只在少数情况下使用复合主键是明智的，比如简单的多对多连接表:
 
-```
+```python
 class Image(Model):
     filename = TextField()
     mimetype = CharField()
@@ -959,22 +968,22 @@ class ImageTag(Model):  # Many-to-many relationship.
         primary_key = CompositeKey('image', 'tag')
 ```
 
-In the extremely rare case you wish to declare a model with *no* primary key, you can specify `primary_key = False` in the model `Meta` options.
+在极其罕见的情况下，你希望声明一个有*no*主键的模型，你可以在模型的`Meta`选项指定`primary_key = False`。
 
-### Non-integer primary keys
+### 非整数主键
 
-If you would like use a non-integer primary key (which I generally don’t recommend), you can specify `primary_key=True` when creating a field. When you wish to create a new instance for a model using a non-autoincrementing primary key, you need to be sure you [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) specifying `force_insert=True`.
+如果你想使用一个非整数主键(我通常不推荐)，当创建一个字段你可以指定`primary_key=True`。当您希望使用非自动递增主键为模型创建一个新实例时，您需要确保您[` save() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)指定了`force_insert=True`。
 
-```
+```python
 from peewee import *
 
 class UUIDModel(Model):
     id = UUIDField(primary_key=True)
 ```
 
-Auto-incrementing IDs are, as their name says, automatically generated for you when you insert a new row into the database. When you call [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save), peewee determines whether to do an *INSERT* versus an *UPDATE* based on the presence of a primary key value. Since, with our uuid example, the database driver won’t generate a new ID, we need to specify it manually. When we call save() for the first time, pass in `force_insert = True`:
+自动递增id，顾名思义，是在向数据库中插入新行时自动生成的。当您调用[`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)时，peewee根据主键值的存在来决定是执行*INSERT*还是*UPDATE*。在我们的uuid示例中，数据库驱动程序不会生成新的ID，所以我们需要手动指定它。当我们第一次调用save()时，传入`force_insert = True`:
 
-```
+```python
 # This works because .create() will specify `force_insert=True`.
 obj1 = UUIDModel.create(id=uuid.uuid4())
 
@@ -988,17 +997,17 @@ obj2.save(force_insert=True) # CORRECT
 obj2.save()
 ```
 
-Note
+> 注意
+>
+> 任何具有非整数主键的模型的外键都有一个' ForeignKeyField '，它使用与它们相关的主键相同的底层存储类型。
 
-Any foreign keys to a model with a non-integer primary key will have a `ForeignKeyField` use the same underlying storage type as the primary key they are related to.
 
 
+### 复合主键
 
-### Composite primary keys
+Peewee对复合键有非常基本的支持。为了使用复合键，必须将模型选项的`primary_key`属性设置为[`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey)实例:
 
-Peewee has very basic support for composite keys. In order to use a composite key, you must set the `primary_key` attribute of the model options to a [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey) instance:
-
-```
+```python
 class BlogToTag(Model):
     """A simple "through" table for many-to-many relationship."""
     blog = ForeignKeyField(Blog)
@@ -1008,15 +1017,17 @@ class BlogToTag(Model):
         primary_key = CompositeKey('blog', 'tag')
 ```
 
-Warning
+警告
 
-Peewee does not support foreign-keys to models that define a [`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey) primary key. If you wish to add a foreign-key to a model that has a composite primary key, replicate the columns on the related model and add a custom accessor (e.g. a property).
+对于定义[`CompositeKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CompositeKey)主键的模型，Peewee不支持外键。如果你想在一个有复合主键的模型中添加外键，复制相关模型上的列并添加一个自定义访问器(例如一个属性)。
 
-### Manually specifying primary keys
 
-Sometimes you do not want the database to automatically generate a value for the primary key, for instance when bulk loading relational data. To handle this on a *one-off* basis, you can simply tell peewee to turn off `auto_increment` during the import:
 
-```
+### 手动指定主键
+
+有时，您不希望数据库为主键自动生成一个值，例如在批量加载关系数据时。一次性处理，你可以告诉peewee在导入期间关闭`auto_increment`:
+
+```python
 data = load_user_csv() # load up a bunch of data
 
 User._meta.auto_increment = False # turn off auto incrementing IDs
@@ -1028,18 +1039,18 @@ with db.atomic():
 User._meta.auto_increment = True
 ```
 
-Although a better way to accomplish the above, without resorting to hacks, is to use the [`Model.insert_many()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many) API:
+更好的实现上述目标的方法是使用[`Model.insert_many()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many) 
 
-```
+```python
 data = load_user_csv()
 fields = [User.id, User.username]
 with db.atomic():
     User.insert_many(data, fields=fields).execute()
 ```
 
-If you *always* want to have control over the primary key, simply do not use the [`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField) field type, but use a normal [`IntegerField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#IntegerField) (or other column type):
+如果你总是想要可以控制的主键，不使用[`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html AutoField)字段类型,但使用正常[`ntegerField`](http://docs.peewee-orm.com/en/latest/peewee/api.html # IntegerField)(或其他列类型):
 
-```
+```python
 class User(BaseModel):
     id = IntegerField(primary_key=True)
     username = CharField()
@@ -1051,11 +1062,13 @@ class User(BaseModel):
 999
 ```
 
-### Models without a Primary Key
 
-If you wish to create a model with no primary key, you can specify `primary_key = False` in the inner `Meta` class:
 
-```
+### 没有主键的模型
+
+如果你想创建一个没有主键的模型，你可以在内部的元类中指定`primary_key = False`:
+
+```python
 class MyData(BaseModel):
     timestamp = DateTimeField()
     value = IntegerField()
@@ -1064,38 +1077,41 @@ class MyData(BaseModel):
         primary_key = False
 ```
 
-This will yield the following DDL:
+这将产生以下DDL:
 
-```
+```python
 CREATE TABLE "mydata" (
   "timestamp" DATETIME NOT NULL,
   "value" INTEGER NOT NULL
 )
 ```
 
-Warning
+> 警告
+>
+> 一些模型api可能不会正常工作模式没有一个主键，例如[`save ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html Model.save)和[`delete_instance ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html Model.delete_instance)（您可以使用[`insert()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert),[`update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html Model.update)和[`delect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html Model.delete)）
 
-Some model APIs may not work correctly for models without a primary key, for instance [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) and [`delete_instance()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance) (you can instead use [`insert()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert), [`update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update) and [`delete()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete)).
 
-## Self-referential foreign keys
 
-When creating a hierarchical structure it is necessary to create a self-referential foreign key which links a child object to its parent. Because the model class is not defined at the time you instantiate the self-referential foreign key, use the special string `'self'` to indicate a self-referential foreign key:
+## 自引用外键
 
-```
+当创建层次结构时，有必要创建一个自引用的外键，它将子对象链接到其父对象。因为model类在实例化self- reference外键时没有定义，所以使用特殊字符串`'self' `来表示self- reference外键:
+
+```python
 class Category(Model):
     name = CharField()
     parent = ForeignKeyField('self', null=True, backref='children')
 ```
 
-As you can see, the foreign key points *upward* to the parent object and the back-reference is named *children*.
+如您所见，外键指向父对象*`向上`*，而反向引用被称为*`子对象`*。
 
-Attention
+> 注意
+>
+> 自引用外键应该始终为` null=True `。
+>
 
-Self-referential foreign-keys should always be `null=True`.
+在查询包含自引用外键的模型时，有时可能需要执行自连接。在这些情况下，您可以使用[`Model.alias()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.alias)来创建一个表引用。下面是如何使用自连接查询类别和父模型:
 
-When querying against a model that contains a self-referential foreign key you may sometimes need to perform a self-join. In those cases you can use [`Model.alias()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.alias) to create a table reference. Here is how you might query the category and parent model using a self-join:
-
-```
+```python
 Parent = Category.alias()
 GrandParent = Category.alias()
 query = (Category
@@ -1108,17 +1124,18 @@ query = (Category
 
 
 
-## Circular foreign key dependencies
+## 循环外键依赖
 
-Sometimes it happens that you will create a circular dependency between two tables.
+有时，您会在两个表之间创建循环依赖关系。
 
-Note
+> 注意
+>
+> 我个人的观点是，循环外键是一种代码气味，应该被重构(例如，通过添加一个中间表)。
+>
 
-My personal opinion is that circular foreign keys are a code smell and should be refactored (by adding an intermediary table, for instance).
+使用peewee添加循环外键有点棘手，因为在定义任何一个外键时，它所指向的模型都还没有定义，这会导致`NameError`。
 
-Adding circular foreign keys with peewee is a bit tricky because at the time you are defining either foreign key, the model it points to will not have been defined yet, causing a `NameError`.
-
-```
+```python
 class User(Model):
     username = CharField()
     favorite_tweet = ForeignKeyField(Tweet, null=True)  # NameError!!
@@ -1128,17 +1145,17 @@ class Tweet(Model):
     user = ForeignKeyField(User, backref='tweets')
 ```
 
-One option is to simply use an [`IntegerField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#IntegerField) to store the raw ID:
+一种方法是简单地使用[` IntegerField `](http://docs.peewee-orm.com/en/latest/peewee/api.html#IntegerField)来存储原始ID:
 
-```
+```python
 class User(Model):
     username = CharField()
     favorite_tweet_id = IntegerField(null=True)
 ```
 
-By using [`DeferredForeignKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DeferredForeignKey) we can get around the problem and still use a foreign key field:
+通过使用[`DeferredForeignKey`](http://docs.peewee-orm.com/en/latest/peewee/api.html#DeferredForeignKey)，我们可以绕过这个问题，仍然使用外键字段:
 
-```
+```python
 class User(Model):
     username = CharField()
     # Tweet has not been defined yet so use the deferred reference.
@@ -1154,11 +1171,11 @@ print(User.favorite_tweet)
 # <ForeignKeyField: "user"."favorite_tweet">
 ```
 
-There is one more quirk to watch out for, though. When you call [`create_table`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create_table) we will again encounter the same issue. For this reason peewee will not automatically create a foreign key constraint for any *deferred* foreign keys.
+不过这里还有一个需要注意的怪癖。当您调用[`create_table`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create_table)时，我们将再次遇到相同的问题。因此，peewee不会自动为任何`延迟`外键创建外键约束。
 
-To create the tables *and* the foreign-key constraint, you can use the [`SchemaManager.create_foreign_key()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SchemaManager.create_foreign_key) method to create the constraint after creating the tables:
+要创建表*和*外键约束，可以使用[`SchemaManager.create_foreign_key()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SchemaManager.create_foreign_key)方法在创建表后创建约束:
 
-```
+```python
 # Will create the User and Tweet tables, but does *not* create a
 # foreign-key constraint on User.favorite_tweet.
 db.create_tables([User, Tweet])
@@ -1167,6 +1184,7 @@ db.create_tables([User, Tweet])
 User._schema.create_foreign_key(User.favorite_tweet)
 ```
 
-Note
+> 注意
+>
+> 因为SQLite对修改表的支持有限，所以在创建表之后，不能向表添加外键约束。
 
-Because SQLite has limited support for altering tables, foreign-key constraints cannot be added to a table after it has been created.
