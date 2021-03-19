@@ -38,35 +38,35 @@ class Tweet(BaseModel):
 
 1. 创建一个数据库实例 [`Database`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database).
 
-   > ```python
-   > db = SqliteDatabase('my_app.db')
-   > ```
-   >
-   > `db` 管理着Sqlite数据库的连接. 在上面案例里用到了 [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)，但我们同样可以使用其他的 [database engines](http://docs.peewee-orm.com/en/latest/peewee/database.html#database).
+   ```python
+   db = SqliteDatabase('my_app.db')
+   ```
+   
+   `db` 管理着Sqlite数据库的连接. 在上面案例里用到了 [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)，但我们同样可以使用其他的 [database engines](http://docs.peewee-orm.com/en/latest/peewee/database.html#database).
 
 2. 创建一个基类连接数据库
 
-   > ```python
-   > class BaseModel(Model):
-   >     class Meta:
-   >         database = db
-   > ```
-   >
-   > 定义基类来建立数据库连接的好处：
-   >
-   > - 保持代码简洁，不用对后面的Model类们不停的去指定数据库。
-   > - Model类的配置保存在Meta类的命名空间中，换句话说。Meta类的配资通过继承传递给了所有的子类。
-   >
-   > - *Model.Meta*.还有[许多不同属性](http://docs.peewee-orm.com/en/latest/peewee/models.html#model-options) 可以配置
+   ```python
+   class BaseModel(Model):
+   	class Meta:
+        	database = db
+   ```
+   
+   定义基类来建立数据库连接的好处：
+   
+   - 保持代码简洁，不用对后面的Model类们不停的去指定数据库。
+   - Model类的配置保存在Meta类的命名空间中，换句话说。Meta类的配资通过继承传递给了所有的子类。
+   
+   - *Model.Meta*.还有[许多不同属性](http://docs.peewee-orm.com/en/latest/peewee/models.html#model-options) 可以配置
 
 3. 定义一个model实例
 
-   > ```python
-   > class User(BaseModel):
-   >     username = CharField(unique=True)
-   > ```
-   >
-   > Model 定义用的是ORMs的声明方式，类似于SQLAlchemy或Django。 注意：User继承了Basemodel，所以User也将继承数据库连接。我们明确的定义了username的唯一行限制。因为我们没有指明一个主键，所以peewee会自动增加一个自增长的整数作为主键——id。
+   ```python
+   class User(BaseModel):
+   	username = CharField(unique=True)
+   ```
+   
+   Model 定义用的是ORMs的声明方式，类似于SQLAlchemy或Django。 注意：User继承了Basemodel，所以User也将继承数据库连接。我们明确的定义了username的唯一行限制。因为我们没有指明一个主键，所以peewee会自动增加一个自增长的整数作为主键——id。
 
 > Note
 >

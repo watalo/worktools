@@ -1,30 +1,30 @@
-# Querying
+# 查询Querying
 
-This section will cover the basic CRUD operations commonly performed on a relational database:
+本节将介绍通常在关系数据库上执行的基本CRUD操作::
 
 - [`Model.create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create), for executing *INSERT* queries.
 - [`Model.save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) and [`Model.update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update), for executing *UPDATE* queries.
 - [`Model.delete_instance()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance) and [`Model.delete()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete), for executing *DELETE* queries.
 - [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select), for executing *SELECT* queries.
 
-Note
+> 注意
+>
+> 还有大量来自[Postgresql习题](https://pgexercises.com/)网站的查询示例。示例请参见“[查询示例](http://docs.peewee-orm.com/en/latest/peewee/query_examples.html#query-examples)”文档。
 
-There is also a large collection of example queries taken from the [Postgresql Exercises](https://pgexercises.com/) website. Examples are listed on the [query examples](http://docs.peewee-orm.com/en/latest/peewee/query_examples.html#query-examples) document.
+## 创建新记录
 
-## Creating a new record
+您可以使用[`model .create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)来创建一个新的模型实例。此方法接受关键字参数，其中的关键字对应于模型字段的名称.返回一个新的实例，并向表中添加一行。
 
-You can use [`Model.create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create) to create a new model instance. This method accepts keyword arguments, where the keys correspond to the names of the model’s fields. A new instance is returned and a row is added to the table.
-
-```
+```python
 >>> User.create(username='Charlie')
 <__main__.User object at 0x2529350>
 ```
 
-This will *INSERT* a new row into the database. The primary key will automatically be retrieved and stored on the model instance.
+这将插入一个新行到数据库中。主键将被自动检索并存储在模型实例中。
 
-Alternatively, you can build up a model instance programmatically and then call [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save):
+或者，您可以通过编程方式构建一个模型实例，然后调用[`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save):
 
-```
+```python
 >>> user = User(username='Charlie')
 >>> user.save()  # save() returns the number of rows modified.
 1
@@ -38,19 +38,21 @@ Alternatively, you can build up a model instance programmatically and then call 
 2
 ```
 
-When a model has a foreign key, you can directly assign a model instance to the foreign key field when creating a new record.
+当一个模型有一个外键时，您可以在创建一个新记录时直接将一个模型实例分配给外键字段。
 
 ```
 >>> tweet = Tweet.create(user=huey, message='Hello!')
 ```
 
-You can also use the value of the related object’s primary key:
+你也可以使用相关对象的主键值:
 
 ```
 >>> tweet = Tweet.create(user=2, message='Hello again!')
 ```
 
 If you simply wish to insert data and do not need to create a model instance, you can use [`Model.insert()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert):
+
+如果您只是希望插入数据而不需要创建模型实例，可以使用[' model .insert() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert):
 
 ```
 >>> User.insert(username='Mickey').execute()
@@ -63,11 +65,19 @@ Note
 
 There are several ways you can speed up bulk insert operations. Check out the [Bulk inserts](http://docs.peewee-orm.com/en/latest/peewee/querying.html#bulk-inserts) recipe section for more information.
 
+执行insert查询之后，将返回新行的主键。
+
+请注意
+
+有几种方法可以加速批量插入操作。请查看[批量插入](http://docs.peewee-orm.com/en/latest/peewee/querying.html#bulk-inserts)配方部分以获取更多信息。
 
 
-## Bulk inserts
+
+## 批量插入Bulk inserts
 
 There are a couple of ways you can load lots of data quickly. The naive approach is to simply call [`Model.create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create) in a loop:
+
+有几种方法可以快速加载大量数据。简单的方法是循环调用[' Model.create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create):
 
 ```
 data_source = [
@@ -89,6 +99,20 @@ The above approach is slow for a couple of reasons:
 
 You can get a significant speedup by simply wrapping this in a transaction with [`atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic).
 
+上述方法之所以缓慢，有以下几个原因:
+
+\1. 如果你没有将循环包装在一个事务中，那么每次对[' create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)的调用都会发生在它自己的事务中。那将会非常缓慢!
+
+\2. 有相当多的Python逻辑阻碍你，每个' InsertQuery '都必须生成并解析为SQL。
+
+3.这是您要发送到数据库以进行解析的大量数据(以SQL的原始字节计算)。
+
+\4. 我们正在检索*最后一个插入id*，这在某些情况下会导致执行额外的查询。
+
+您可以通过简单地使用[' atomic() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic)将其包装在一个事务中来获得显著的加速。
+
+
+
 ```
 # This is much faster.
 with db.atomic():
@@ -97,6 +121,10 @@ with db.atomic():
 ```
 
 The above code still suffers from points 2, 3 and 4. We can get another big boost by using [`insert_many()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many). This method accepts a list of tuples or dictionaries, and inserts multiple rows in a single query:
+
+上述代码仍然受到第2、3和4点的影响。我们可以通过使用[' insert_many() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many)获得另一个巨大的提升。该方法接受元组或字典的列表，并在单个查询中插入多个行:
+
+
 
 ```
 data_source = [
@@ -111,6 +139,8 @@ MyModel.insert_many(data_source).execute()
 
 The [`insert_many()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many) method also accepts a list of row-tuples, provided you also specify the corresponding fields:
 
+[' insert_many() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many)方法也接受一个行元组列表，前提是你还指定了相应的字段:
+
 ```
 # We can INSERT tuples as well...
 data = [('val1-1', 'val1-2'),
@@ -123,6 +153,8 @@ MyModel.insert_many(data, fields=[MyModel.field1, MyModel.field2]).execute()
 
 It is also a good practice to wrap the bulk insert in a transaction:
 
+在事务中封装批量插入也是一个很好的做法:
+
 ```
 # You can, of course, wrap this in a transaction as well:
 with db.atomic():
@@ -133,11 +165,25 @@ Note
 
 SQLite users should be aware of some caveats when using bulk inserts. Specifically, your SQLite3 version must be 3.7.11.0 or newer to take advantage of the bulk insert API. Additionally, by default SQLite limits the number of bound variables in a SQL query to `999` for SQLite versions prior to 3.32.0 (2020-05-22) and 32766 for SQLite versions after 3.32.0.
 
-### Inserting rows in batches
+请注意
+
+SQLite用户在使用批量插入时应该注意一些注意事项。具体来说，SQLite3的版本必须是3.7.11.0或更新版本，才能利用批量插入API。另外，默认情况下，对于3.32.0(2020-05-22)之前的SQLite版本，SQLite将SQL查询中绑定变量的数量限制为“999”，而对于3.32.0之后的SQLite版本，则限制为32766。
+
+
+
+### Inserting rows in batches 批量插入行
 
 Depending on the number of rows in your data source, you may need to break it up into chunks. SQLite in particular typically has a [limit of 999 or 32766](https://www.sqlite.org/limits.html#max_variable_number) variables-per-query (batch size would then be 999 // row length or 32766 // row length).
 
 You can write a loop to batch your data into chunks (in which case it is **strongly recommended** you use a transaction):
+
+根据数据源中的行数，您可能需要将其分解为块。SQLite通常具有[999或32766](https://www.sqlite.org/limits.html#max_variable_number)每个查询的变量(这样批处理大小就会是999 //行长度或32766 //行长度)。
+
+
+
+你可以写一个循环来批处理你的数据到块(在这种情况下，它是**强烈建议**你使用事务):
+
+
 
 ```
 # Insert rows 100 at a time.
@@ -148,6 +194,10 @@ with db.atomic():
 
 Peewee comes with a [`chunked()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#chunked) helper function which you can use for *efficiently* chunking a generic iterable into a series of *batch*-sized iterables:
 
+Peewee提供了一个[' chunked() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#chunked)帮助函数，你可以使用它来*有效*地将一个通用的可迭代对象分块为一系列*batch*大小的可迭代对象:
+
+
+
 ```
 from peewee import chunked
 
@@ -157,9 +207,13 @@ with db.atomic():
         MyModel.insert_many(batch).execute()
 ```
 
-### Alternatives
+### Alternatives 选择
 
 The [`Model.bulk_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_create) method behaves much like [`Model.insert_many()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_many), but instead it accepts a list of unsaved model instances to insert, and it optionally accepts a batch-size parameter. To use the [`bulk_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_create) API:
+
+(“Model.bulk_create () '] (http://docs.peewee-orm.com/en/latest/peewee/api.html Model.bulk_create)方法的行为很像(“Model.insert_many()”)(http://docs.peewee-orm.com/en/latest/peewee/api.html # Model.insert_many),而是它接受一个未保存的模型实例插入列表,并且接受批量大小可选参数。使用[' bulk_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_create) API:
+
+
 
 ```
 # Read list of usernames from a file, for example.
@@ -179,6 +233,16 @@ If you are using Postgresql (which supports the `RETURNING` clause), then the pr
 
 In addition, Peewee also offers [`Model.bulk_update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update), which can efficiently update one or more columns on a list of models. For example:
 
+请注意
+
+如果您正在使用Postgresql(它支持' returns '子句)，那么之前未保存的模型实例将自动填充它们新的主键值。
+
+此外，Peewee还提供了[' Model.bulk_update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)，它可以有效地更新模型列表上的一个或多个列。例如:
+
+
+
+
+
 ```
 # First, create 3 users with usernames u1, u2, u3.
 u1, u2, u3 = [User.create(username='u%s' % i) for i in (1, 2, 3)]
@@ -196,12 +260,30 @@ Note
 
 For large lists of objects, you should specify a reasonable batch_size and wrap the call to [`bulk_update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update) with [`Database.atomic()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic):
 
+
+
+请注意
+
+
+
+对于大型对象列表，应该指定一个合理的batch_size，并使用[' Database.atomic() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic):)包装对[' bulk_update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的调用
+
+
+
 ```
 with database.atomic():
     User.bulk_update(list_of_users, fields=['username'], batch_size=50)
 ```
 
 Alternatively, you can use the [`Database.batch_commit()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.batch_commit) helper to process chunks of rows inside *batch*-sized transactions. This method also provides a workaround for databases besides Postgresql, when the primary-key of the newly-created rows must be obtained.
+
+
+
+另外，你也可以使用[' Database.batch_commit() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.batch_commit)帮助器在批量大小的事务中处理行块。该方法还为Postgresql以外的数据库提供了一种解决方案，当必须获取新创建行的主键时。
+
+
+
+
 
 ```
 # List of row data to insert.
@@ -213,9 +295,13 @@ for row in db.batch_commit(row_data, 100):
     User.create(**row)
 ```
 
-### Bulk-loading from another table
+### Bulk-loading from another table 从另一张桌子上散装货物
 
 If the data you would like to bulk load is stored in another table, you can also create *INSERT* queries whose source is a *SELECT* query. Use the [`Model.insert_from()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_from) method:
+
+
+
+如果要批量加载的数据存储在另一个表中，您还可以创建源为*SELECT*查询的*INSERT*查询。使用[' Model.insert_from() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_from)方法:
 
 ```
 res = (TweetArchive
@@ -227,14 +313,22 @@ res = (TweetArchive
 
 The above query is equivalent to the following SQL:
 
+
+
+上面的查询相当于下面的SQL:
+
 ```
 INSERT INTO "tweet_archive" ("user_id", "message")
 SELECT "user_id", "message" FROM "tweet";
 ```
 
-## Updating existing records
+## Updating existing records 更新现有的记录
 
 Once a model instance has a primary key, any subsequent call to [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) will result in an *UPDATE* rather than another *INSERT*. The model’s primary key will not change:
+
+一旦模型实例有了主键，后续对[' save() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)的任何调用都会导致一个*UPDATE*而不是另一个*INSERT*。模型的主键不会改变:
+
+
 
 ```
 >>> user.save()  # save() returns the number of rows modified.
@@ -252,6 +346,12 @@ Once a model instance has a primary key, any subsequent call to [`save()`](http:
 
 If you want to update multiple records, issue an *UPDATE* query. The following example will update all `Tweet` objects, marking them as *published*, if they were created before today. [`Model.update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update) accepts keyword arguments where the keys correspond to the model’s field names:
 
+如果你想更新多条记录，发出一个* update *查询。下面的例子将更新所有的‘Tweet’对象，如果它们是在今天之前创建的，则将它们标记为*published*。[' model .update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)接受关键字参数，关键字对应模型的字段名:
+
+
+
+
+
 ```
 >>> today = datetime.today()
 >>> query = Tweet.update(is_published=True).where(Tweet.creation_date < today)
@@ -265,11 +365,25 @@ Note
 
 If you would like more information on performing atomic updates (such as incrementing the value of a column), check out the [atomic update](http://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates) recipes.
 
+更多信息，请参阅[' Model.update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)， [' Update '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Update)和[' Model.bulk_update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的文档。
+
+请注意
+
+如果您想了解有关执行原子更新的更多信息(比如增加列的值)，请查看[atomic update](http://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates)配方。
 
 
-## Atomic updates
+
+
+
+## Atomic updates 原子更新
 
 Peewee allows you to perform atomic updates. Let’s suppose we need to update some counters. The naive approach would be to write something like this:
+
+
+
+Peewee允许执行原子更新。让我们假设我们需要更新一些计数器。简单的方法是这样写的:
+
+
 
 ```
 >>> for stat in Stat.select().where(Stat.url == request.url):
@@ -281,12 +395,26 @@ Peewee allows you to perform atomic updates. Let’s suppose we need to update s
 
 Instead, you can update the counters atomically using [`update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update):
 
+
+
+不要这样做!**这不仅很慢，而且如果多个进程同时更新计数器，它还容易受到竞争条件的影响。
+
+
+
+相反，您可以使用[' update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update):)自动更新计数器
+
+
+
 ```
 >>> query = Stat.update(counter=Stat.counter + 1).where(Stat.url == request.url)
 >>> query.execute()
 ```
 
 You can make these update statements as complex as you like. Let’s give all our employees a bonus equal to their previous bonus plus 10% of their salary:
+
+您可以随心所欲地使这些update语句变得复杂。我们发给所有员工的奖金等于他们上次的奖金加上他们工资的10%:
+
+
 
 ```
 >>> query = Employee.update(bonus=(Employee.bonus + (Employee.salary * .1)))
@@ -295,17 +423,29 @@ You can make these update statements as complex as you like. Let’s give all ou
 
 We can even use a subquery to update the value of a column. Suppose we had a denormalized column on the `User` model that stored the number of tweets a user had made, and we updated this value periodically. Here is how you might write such a query:
 
+
+
+我们甚至可以使用子查询来更新列的值。假设我们在“User”模型上有一个非规范化的列，该列存储了用户发出的tweet数量，我们定期更新这个值。下面是如何编写这样的查询:
+
 ```
 >>> subquery = Tweet.select(fn.COUNT(Tweet.id)).where(Tweet.user == User.id)
 >>> update = User.update(num_tweets=subquery)
 >>> update.execute()
 ```
 
-### Upsert
+### Upsert 插入
 
 Peewee provides support for varying types of upsert functionality. With SQLite prior to 3.24.0 and MySQL, Peewee offers the [`replace()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace), which allows you to insert a record or, in the event of a constraint violation, replace the existing record.
 
 Example of using [`replace()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace) and [`on_conflict_replace()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_replace):
+
+
+
+Peewee支持各种类型的upsert功能。在3.24.0之前的SQLite和MySQL中，Peewee提供了[' replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)，它允许你插入一条记录，或者在违反约束的情况下，替换现有的记录。
+
+
+
+使用[' replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)和[' on_conflict_replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_replace):
 
 ```
 class User(Model):
@@ -330,6 +470,20 @@ Note
 In addition to *replace*, SQLite, MySQL and Postgresql provide an *ignore* action (see: [`on_conflict_ignore()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_ignore)) if you simply wish to insert and ignore any potential constraint violation.
 
 **MySQL** supports upsert via the *ON DUPLICATE KEY UPDATE* clause. For example:
+
+
+
+请注意
+
+
+
+除了*replace*， SQLite, MySQL和Postgresql提供了一个*ignore*操作(参见:[' on_conflict_ignore() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_ignore))，如果你只是想插入和忽略任何潜在的约束违反。
+
+
+
+**MySQL**通过*ON DUPLICATE KEY UPDATE*子句支持upsert。例如:
+
+
 
 ```
 class User(Model):
@@ -356,6 +510,18 @@ In the above example, we could safely invoke the upsert query as many times as w
 **Postgresql and SQLite** (3.24.0 and newer) provide a different syntax that allows for more granular control over which constraint violation should trigger the conflict resolution, and what values should be updated or preserved.
 
 Example of using [`on_conflict()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict) to perform a Postgresql-style upsert (or SQLite 3.24+):
+
+
+
+在上面的示例中，我们可以按照自己的意愿安全地多次调用upsert查询。登录计数将自动增加，最后的登录列将被更新，并且不会创建重复的行。
+
+
+
+**Postgresql和SQLite**(3.24.0及更新版本)提供了不同的语法，允许更细粒度地控制哪些约束违反应该触发冲突解决，以及哪些值应该被更新或保留。
+
+
+
+使用[' on_conflict() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)执行postgresql风格的upsert(或SQLite 3.24+)的示例:
 
 ```
 class User(Model):
@@ -385,6 +551,23 @@ Note
 The main difference between MySQL and Postgresql/SQLite is that Postgresql and SQLite require that you specify a `conflict_target`.
 
 Here is a more advanced (if contrived) example using the [`EXCLUDED`](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED) namespace. The [`EXCLUDED`](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED) helper allows us to reference values in the conflicting data. For our example, we’ll assume a simple table mapping a unique key (string) to a value (integer):
+
+
+
+在上面的示例中，我们可以按照自己的意愿安全地多次调用upsert查询。
+登录计数将自动增加，最后的登录列将被更新，并且不会创建重复的行。
+
+请注意
+
+MySQL和Postgresql/SQLite的主要区别是，Postgresql和SQLite要求你指定一个“conflict_target”。
+
+下面是一个使用[' EXCLUDED '](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)命名空间的更高级(如果是人为的)示例。
+[' EXCLUDED '](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)帮助器允许我们引用冲突数据中的值。
+在我们的例子中，我们假设一个简单的表将一个唯一的键(字符串)映射到一个值(整数):
+
+
+
+
 
 ```
 class KV(Model):
@@ -416,9 +599,17 @@ query.execute()
 
 For more information, see [`Insert.on_conflict()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict) and [`OnConflict`](http://docs.peewee-orm.com/en/latest/peewee/api.html#OnConflict).
 
+
+
+更多信息，请参见[' Insert.on_conflict() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)和[' OnConflict '](http://docs.peewee-orm.com/en/latest/peewee/api.html#OnConflict)。
+
 ## Deleting records
 
 To delete a single model instance, you can use the [`Model.delete_instance()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance) shortcut. [`delete_instance()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance) will delete the given model instance and can optionally delete any dependent objects recursively (by specifying recursive=True).
+
+
+
+要删除单个模型实例，可以使用[' model .delete_instance() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance)快捷方式。[' delete_instance() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance)将删除给定的模型实例，并且可以选择性地递归地删除任何依赖对象(指定recursive=True)。
 
 ```
 >>> user = User.get(User.id == 1)
@@ -433,6 +624,10 @@ PARAMS: [1]
 
 To delete an arbitrary set of rows, you can issue a *DELETE* query. The following will delete all `Tweet` objects that are over one year old:
 
+要删除任意一组行，您可以发出一个* delete *查询。下面将删除所有超过一年的' Tweet '对象:
+
+
+
 ```
 >>> query = Tweet.delete().where(Tweet.creation_date < one_year_ago)
 >>> query.execute()  # Returns the number of rows deleted.
@@ -441,15 +636,27 @@ To delete an arbitrary set of rows, you can issue a *DELETE* query. The followin
 
 For more information, see the documentation on:
 
+更多信息，请参阅以下文档:
+
 - [`Model.delete_instance()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete_instance)
 - [`Model.delete()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.delete)
 - `DeleteQuery`
 
-## Selecting a single record
+## Selecting a single record 选择单个记录
 
 You can use the [`Model.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get) method to retrieve a single instance matching the given query. For primary-key lookups, you can also use the shortcut method [`Model.get_by_id()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_by_id).
 
 This method is a shortcut that calls [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select) with the given query, but limits the result set to a single row. Additionally, if no model matches the given query, a `DoesNotExist` exception will be raised.
+
+
+
+您可以使用[' Model.get() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get)方法来检索与给定查询匹配的单个实例。对于主键查找，还可以使用快捷方法[' Model.get_by_id() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_by_id)。
+
+
+
+这个方法是一个快捷方式，它使用给定的查询调用[' Model.select() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)，但是将结果集限制为单个行。此外，如果没有模型匹配给定的查询，将引发' DoesNotExist '异常。
+
+
 
 ```
 >>> User.get(User.id == 1)
@@ -475,6 +682,10 @@ PARAMS: ['nobody']
 
 For more advanced operations, you can use [`SelectBase.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get). The following query retrieves the latest tweet from the user named *charlie*:
 
+
+
+对于更高级的操作，您可以使用[' SelectBase.get() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get)。下面的查询检索名为*charlie*的用户的最新tweet:
+
 ```
 >>> (Tweet
 ...  .select()
@@ -487,18 +698,29 @@ For more advanced operations, you can use [`SelectBase.get()`](http://docs.peewe
 
 For more information, see the documentation on:
 
+更多信息，请参阅以下文档:
+
 - [`Model.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get)
 - [`Model.get_by_id()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_by_id)
-- [`Model.get_or_none()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_none) - if no matching row is found, return `None`.
+- [`Model.get_or_none()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_none) - if no matching row is found, return `None`.如果没有找到匹配的行，则返回' None '。
 - `Model.first()`
 - [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)
 - [`SelectBase.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get)
 
-## Create or get
+## Create or get 创建或获取
 
 Peewee has one helper method for performing “get/create” type operations: [`Model.get_or_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create), which first attempts to retrieve the matching row. Failing that, a new row will be created.
 
 For “create or get” type logic, typically one would rely on a *unique* constraint or primary key to prevent the creation of duplicate objects. As an example, let’s say we wish to implement registering a new user account using the [example User model](http://docs.peewee-orm.com/en/latest/peewee/models.html#blog-models). The *User* model has a *unique* constraint on the username field, so we will rely on the database’s integrity guarantees to ensure we don’t end up with duplicate usernames:
+
+Peewee有一个帮助器方法来执行“get/create”类型操作:[' Model.get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)，它首先尝试检索匹配的行。
+否则，将创建一个新行。
+
+对于“create or get”类型逻辑，通常会依赖一个*unique*约束或主键来防止创建重复对象。
+例如，假设我们希望使用[示例用户模型](http://docs.peewee-orm.com/en/latest/peewee/models.html#blog-models)实现注册一个新用户帐户。
+*User*模型在用户名字段上有*unique*约束，所以我们将依赖数据库的完整性保证来确保我们最终不会有重复的用户名:
+
+
 
 ```
 try:
@@ -516,11 +738,27 @@ The above example first attempts at creation, then falls back to retrieval, rely
 
 Here is how you might implement user account creation using [`get_or_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create):
 
+
+
+你可以很容易地将这种逻辑封装为你自己的“模型”类中的“classmethod”。
+
+上面的示例首先尝试创建，然后返回到检索，依赖数据库来强制执行唯一约束。
+如果您更喜欢先尝试检索记录，您可以使用[' get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)。
+这个方法的实现与同名的Django函数相同。
+你可以使用django风格的关键字参数过滤器来指定你的“WHERE”条件。
+该函数返回一个二元组，其中包含实例和一个布尔值，该值指示对象是否被创建。
+
+下面是如何使用[' get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create):)实现用户帐户的创建
+
 ```
 user, created = User.get_or_create(username=username)
 ```
 
 Suppose we have a different model `Person` and would like to get or create a person object. The only conditions we care about when retrieving the `Person` are their first and last names, **but** if we end up needing to create a new record, we will also specify their date-of-birth and favorite color:
+
+假设我们有一个不同的模型“Person”，并希望获得或创建一个Person对象。检索“Person”时，我们关心的唯一条件是他们的姓和名，**但**如果我们最终需要创建一个新记录，我们还将指定他们的出生日期和最喜欢的颜色:
+
+
 
 ```
 person, created = Person.get_or_create(
@@ -533,9 +771,23 @@ Any keyword argument passed to [`get_or_create()`](http://docs.peewee-orm.com/en
 
 For more details read the documentation for [`Model.get_or_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create).
 
-## Selecting multiple records
+传递给[' get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的任何关键字参数都将在逻辑的' get() '部分中使用，除了' defaults '字典，它将用于填充新创建实例的值。
+
+要了解更多细节，请阅读[' Model.get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的文档。
+
+
+
+
+
+## Selecting multiple records 选择多个记录
 
 We can use [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select) to retrieve rows from the table. When you construct a *SELECT* query, the database will return any rows that correspond to your query. Peewee allows you to iterate over these rows, as well as use indexing and slicing operations:
+
+
+
+我们可以使用[' Model.select() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)从表中检索行。
+当您构造一个*SELECT*查询时，数据库将返回与您的查询对应的任何行。
+Peewee允许你遍历这些行，以及使用索引和切片操作:
 
 ```
 >>> query = User.select()
@@ -556,6 +808,14 @@ We can use [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.ht
 
 In the following example, we will simply call [`select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select) and iterate over the return value, which is an instance of [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select). This will return all the rows in the *User* table:
 
+[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询是聪明的，因为您可以迭代、索引和切片查询多次，但查询只执行一次。
+
+
+
+在下面的示例中，我们将简单地调用[' select() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)并迭代返回值，该值是[' select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)的一个实例。这将返回*User*表中的所有行:
+
+
+
 ```
 >>> for user in User.select():
 ...     print user.username
@@ -572,6 +832,22 @@ Subsequent iterations of the same query will not hit the database as the results
 When iterating over a model that contains a foreign key, be careful with the way you access values on related models. Accidentally resolving a foreign key or iterating over a back-reference can cause [N+1 query behavior](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#nplusone).
 
 When you create a foreign key, such as `Tweet.user`, you can use the *backref* to create a back-reference (`User.tweets`). Back-references are exposed as [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) instances:
+
+请注意
+
+
+
+当结果被缓存时，相同查询的后续迭代将不会到达数据库。要禁用此行为(以减少内存使用)，在迭代时调用' Select.iterator() '。
+
+
+
+在迭代包含外键的模型时，要小心访问相关模型上的值的方式。意外解析外键或遍历反向引用可能导致[N+1查询行为](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#nplusone)。
+
+
+
+当你创建一个外键，例如' Tweet。用户'，你可以使用*backref*创建一个反向引用(' user .tweets ')。反向引用被公开为[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)实例:
+
+
 
 ```
 >>> tweet = Tweet.get()
@@ -596,6 +872,12 @@ look at this picture of my food
 
 In addition to returning model instances, [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) queries can return dictionaries, tuples and namedtuples. Depending on your use-case, you may find it easier to work with rows as dictionaries, for example:
 
+除了返回模型实例，[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询还可以返回字典、元组和命名元组。根据您的用例，您可能会发现将行作为字典来处理更容易，例如:
+
+
+
+
+
 ```
 >>> query = User.select().dicts()
 >>> for row in query:
@@ -608,11 +890,27 @@ In addition to returning model instances, [`Select`](http://docs.peewee-orm.com/
 
 See [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples), [`tuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples), [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts) for more information.
 
-### Iterating over large result-sets
+
+
+请参阅[' namedtuples() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples)， [' tuples() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples)， [' dicts() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts)了解更多信息。
+
+
+
+### Iterating over large result-sets 迭代大型结果集
 
 By default peewee will cache the rows returned when iterating over a [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query. This is an optimization to allow multiple iterations as well as indexing and slicing without causing additional queries. This caching can be problematic, however, when you plan to iterate over a large number of rows.
 
 To reduce the amount of memory used by peewee when iterating over a query, use the [`iterator()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator) method. This method allows you to iterate without caching each model returned, using much less memory when iterating over large result sets.
+
+
+
+默认情况下，peewee在迭代[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询时将缓存返回的行。这是一种优化，允许多次迭代以及索引和切片，而不会导致额外的查询。然而，当您计划遍历大量行时，这种缓存可能会产生问题。
+
+
+
+为了减少peewee在迭代查询时所使用的内存，可以使用[' iterator() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法。该方法允许您在不缓存返回的每个模型的情况下进行迭代，在迭代大型结果集时使用更少的内存。
+
+
 
 ```
 # Let's assume we've got 10 million stat objects to dump to a csv file.
@@ -628,11 +926,19 @@ for stat in stats.iterator():
 
 For simple queries you can see further speed improvements by returning rows as dictionaries, namedtuples or tuples. The following methods can be used on any [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query to change the result row type:
 
+
+
+对于简单的查询，您可以通过将行返回为字典、命名元组或元组来进一步提高速度。以下方法可用于任何[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询，以更改结果行类型:
+
 - [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts)
 - [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples)
 - [`tuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples)
 
 Don’t forget to append the [`iterator()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator) method call to also reduce memory consumption. For example, the above code might look like:
+
+
+
+不要忘记附加[' iterator() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法调用，以减少内存消耗。例如，上面的代码可能看起来像:
 
 ```
 # Let's assume we've got 10 million stat objects to dump to a csv file.
@@ -649,6 +955,16 @@ for stat_tuple in stats.tuples().iterator():
 When iterating over a large number of rows that contain columns from multiple tables, peewee will reconstruct the model graph for each row returned. This operation can be slow for complex graphs. For example, if we were selecting a list of tweets along with the username and avatar of the tweet’s author, Peewee would have to create two objects for each row (a tweet and a user). In addition to the above row-types, there is a fourth method [`objects()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects) which will return the rows as model instances, but will not attempt to resolve the model graph.
 
 For example:
+
+当迭代大量包含来自多个表的列的行时，peewee将为返回的每一行重构模型图。对于复杂的图形，此操作可能会比较慢。例如，如果我们选择一个tweet列表以及tweet作者的用户名和头像，Peewee就必须为每一行创建两个对象(一条tweet和一个用户)。除了上面的行类型之外，还有第四个方法[' objects() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects)，它将返回作为模型实例的行，但不会尝试解析模型图。
+
+
+
+例如:
+
+
+
+
 
 ```
 query = (Tweet
@@ -668,6 +984,12 @@ for tweet in query.objects():
 
 For maximum performance, you can execute queries and then iterate over the results using the underlying database cursor. [`Database.execute()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute) accepts a query object, executes the query, and returns a DB-API 2.0 `Cursor` object. The cursor will return the raw row-tuples:
 
+
+
+为了获得最佳性能，可以执行查询，然后使用底层数据库游标迭代结果。[' Database.execute() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute)接受一个查询对象，执行该查询，并返回一个DB-API 2.0 ' Cursor '对象。游标将返回原始的行元组:
+
+
+
 ```
 query = Tweet.select(Tweet.content, User.username).join(User)
 cursor = database.execute(query)
@@ -675,9 +997,13 @@ for (content, username) in cursor:
     print(username, '->', content)
 ```
 
-## Filtering records
+## Filtering records 过滤记录
 
 You can filter for particular records using normal python operators. Peewee supports a wide variety of [query operators](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators).
+
+
+
+您可以使用普通的python操作符过滤特定的记录。Peewee支持多种[查询操作符](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators)。
 
 ```
 >>> user = User.get(User.username == 'Charlie')
@@ -695,6 +1021,8 @@ Really old tweet 2010-01-01 00:00:00
 
 You can also filter across joins:
 
+你也可以过滤连接:
+
 ```
 >>> for tweet in Tweet.select().join(User).where(User.username == 'Charlie'):
 ...     print(tweet.message)
@@ -704,6 +1032,8 @@ look at this picture of my food
 ```
 
 If you want to express a complex query, use parentheses and python’s bitwise *or* and *and* operators:
+
+如果你想表达一个复杂的查询，使用圆括号和python的按位*或*和*和*操作符:
 
 ```
 >>> Tweet.select().join(User).where(
@@ -727,6 +1057,40 @@ A lot of fun things can go in the where clause of a query, such as:
 
 You can also nest queries, for example tweets by users whose username starts with “a”:
 
+
+
+请注意
+
+
+
+注意，Peewee使用**位**操作符(' & '和' | ')而不是逻辑操作符(' and '和' or ')。这是因为Python将逻辑操作的返回值强制转换为布尔值。这也是为什么“IN”查询必须使用' .in_() '而不是' IN '操作符来表示的原因。
+
+
+
+请参阅[查询操作表](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators)，了解可能的查询类型。
+
+
+
+请注意
+
+
+
+在查询的where子句中可以看到很多有趣的事情，例如:
+
+
+
+-字段表达式，例如。的用户。用户名= =“查理”的
+
+-一个函数表达式，例如:“fn.Lower (fn.Substr(用户。用户名，1,1))== 'a' '
+
+-一栏与另一栏的比较，例如:的员工。工资& lt;(员工。任期* 1000)+ 40000 '
+
+
+
+您还可以嵌套查询，例如用户名以“a”开头的用户发布的tweet:
+
+
+
 ```
 # get users whose username starts with "a"
 a_users = User.select().where(fn.Lower(fn.Substr(User.username, 1, 1)) == 'a')
@@ -735,7 +1099,7 @@ a_users = User.select().where(fn.Lower(fn.Substr(User.username, 1, 1)) == 'a')
 a_user_tweets = Tweet.select().where(Tweet.user.in_(a_users))
 ```
 
-### More query examples
+### More query examples 更多的查询示例
 
 Note
 
@@ -743,11 +1107,25 @@ For a wide range of example queries, see the [Query Examples](http://docs.peewee
 
 Get active users:
 
+
+
+请注意
+
+
+
+有关广泛的示例查询，请参阅[查询示例](http://docs.peewee-orm.com/en/latest/peewee/query_examples.html#query-examples)文档，该文档展示了如何实现[PostgreSQL练习](https://pgexercises.com/)网站的查询。
+
+
+
+活跃用户:
+
 ```
 User.select().where(User.active == True)
 ```
 
 Get users who are either staff or superusers:
+
+获取员工用户或超级用户:
 
 ```
 User.select().where(
@@ -756,11 +1134,17 @@ User.select().where(
 
 Get tweets by user named “charlie”:
 
+通过名为“charlie”的用户获取tweets:
+
+
+
 ```
 Tweet.select().join(User).where(User.username == 'charlie')
 ```
 
 Get tweets by staff or superusers (assumes FK relationship):
+
+获取员工或超级用户的推文(假设是FK关系):
 
 ```
 Tweet.select().join(User).where(
@@ -769,15 +1153,19 @@ Tweet.select().join(User).where(
 
 Get tweets by staff or superusers using a subquery:
 
+通过子查询获得员工或超级用户的tweet:
+
 ```
 staff_super = User.select(User.id).where(
     (User.is_staff == True) | (User.is_superuser == True))
 Tweet.select().where(Tweet.user.in_(staff_super))
 ```
 
-## Sorting records
+## Sorting records 整理记录
 
 To return rows in order, use the [`order_by()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.order_by) method:
+
+要按顺序返回行，请使用[' order_by() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.order_by)方法:
 
 ```
 >>> for t in Tweet.select().order_by(Tweet.created_date):
@@ -797,6 +1185,8 @@ To return rows in order, use the [`order_by()`](http://docs.peewee-orm.com/en/la
 
 You can also use `+` and `-` prefix operators to indicate ordering:
 
+还可以使用' + '和' - '前缀操作符来表示顺序:
+
 ```
 # The following queries are equivalent:
 Tweet.select().order_by(Tweet.created_date.desc())
@@ -809,6 +1199,16 @@ User.select().order_by(+User.username)
 ```
 
 You can also order across joins. Assuming you want to order tweets by the username of the author, then by created_date:
+
+
+
+
+
+
+
+
+
+
 
 ```
 query = (Tweet

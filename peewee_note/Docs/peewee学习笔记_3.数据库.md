@@ -134,7 +134,7 @@ db = SqliteDatabase('my_app.db', pragmas={
 })
 ```
 
-动态配置`PRAGMAs`可以使用[`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma)方法或['SqliteDatabase'](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)对象的特殊属性:
+动态配置`PRAGMAs`可以使用[`pragma()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase.pragma)方法或[`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)对象的特殊属性:
 
 ```python
 # Set cache size to 64MB for *current connection*.
@@ -189,9 +189,9 @@ db = SqliteDatabase('my_app.db', pragmas={
 
 SQLite可以用用户自定义的Python代码进行扩展。[`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)类支持三种类型的用户定义扩展:
 
-- 函数 —接受任意数量的参数并返回单个值。
-- Aggregate(聚合) —从多行聚合参数并返回单个值。
-- Collations() —描述如何对某个值排序。
+- Functions函数 —接受任意数量的参数并返回单个值。
+- Aggregate聚合 —从多行聚合参数并返回单个值。
+- Collations整理 —描述如何对某个值排序。
 
 🐶**提示**
 
@@ -391,7 +391,7 @@ Example database URLs:
 
 ## 运行时数据库配置
 
-有时数据库连接设置直到运行时才知道，而运行时这些值可能从配置文件或环境加载。在这些情况下，您可以通过指定' None '作为database_name来*延迟*数据库的初始化。
+有时数据库连接设置直到运行时才知道，而运行时这些值可能从配置文件或环境加载。在这些情况下，您可以通过指定`None`作为database_name来*延迟*数据库的初始化。
 
 ```python
 database = PostgresqlDatabase(None)  # Un-initialized database.
@@ -538,7 +538,7 @@ assert User._meta.database is sqlite_db
 
 ## 线程安全和多数据库
 
-如果您计划在一个多线程应用程序运行时更改数据库，将模型的数据库存储在本地线程可以防止竞争条件(race-conditions)。可以通过自定义模型' Metadata '类来实现:
+如果您计划在一个多线程应用程序运行时更改数据库，将模型的数据库存储在本地线程可以防止竞争条件(race-conditions)。可以通过自定义模型`Metadata`类来实现:
 
 ```python
 import threading
@@ -567,7 +567,7 @@ class BaseModel(Model):
 
 ## 连接管理
 
-要打开到数据库的连接，请使用[`database .connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect)方法:
+要打开到数据库的连接，请使用[`database.connect()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.connect)方法:
 
 ```python
 >>> db = SqliteDatabase(':memory:')  # In-memory SQLite database.
@@ -642,7 +642,7 @@ Peewee使用线程本地存储来跟踪连接状态，使得Peewee [`Database`](
 
 ### 上下文管理器
 
-数据库对象本身可以用作上下文管理器，它在包装的代码块的持续时间内打开连接。此外，事务在包装块的开始处打开，并在连接关闭之前提交(除非发生错误，在这种情况下事务被回滚)。
+数据库对象本身可以用作上下文管理器，它在包装的代码块的持续时间内打开连接，进一步说，事务在包装块的开始处打开，执行提交后关闭连接（除非发生错误，在这种情况下事务被回滚）。
 
 ```python
 >>> db.is_closed()
