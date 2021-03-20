@@ -299,7 +299,7 @@ for tweet in tweets:
     print(tweet.user_id, tweet.message)
 ```
 
-To prevent accidentally resolving a foreign-key and triggering an additional query, [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) supports an initialization paramater `lazy_load` which, when disabled, behaves like the `"_id"` attribute. For example:
+为了防止意外解析外键并触发额外的查询，[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)支持初始化参数`lazy_load`，当被禁用时，它的行为类似于`"_id"`属性。例如:
 
 ```python
 class Tweet(Model):
@@ -483,9 +483,7 @@ assert bitmap.data.is_set(63)
 
 ### BareField
 
-[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField) accepts a special parameter `adapt`. This parameter is a function that takes a value coming from the database and converts it into the appropriate Python type. For instance, if you have a virtual table with an un-typed column but you know that it will return `int` objects, you can specify `adapt=int`.
-
-[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)类仅用于SQLite。由于SQLite使用动态类型，而数据类型没有被强制执行，所以可以很好的声明没有任何数据类型的字段。在这些情况下，您可以使用[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)。使用meta-columns或无类型的列SQLite虚拟表也是常见的，所以对于这些情况下,您可能希望使用一个无类型字段(尽管对于全文搜索,您应该使用[`SearchField`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html)作为替换 )。
+[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)类仅用于SQLite。由于SQLite使用动态类型，而数据类型没有被强制执行，所以可以很好的声明没有任何数据类型的字段。在这些情况下，您可以使用[`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)。使用meta-columns或无类型的列SQLite虚拟表也是常见的，所以对于这些情况下,您可能希望使用一个无类型字段(尽管对于全文搜索，您应该使用[`SearchField`](http://docs.peewee-orm.com/en/latest/peewee/sqlite_ext.html)作为替换 )。
 
 [`BareField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BareField)接受一个特殊参数`adapt `。此参数是一个函数，它接受来自数据库的值，并将其转换为适当的Python类型。例如，如果你有一个包含无类型列的虚拟表，但你知道它将返回`int`对象，你可以指定`adapt=int`。
 
@@ -560,7 +558,9 @@ db = SqliteDatabase('my_db', field_types={'uuid': 'text'})
 
 ### 字段命名冲突
 
-[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html模型)类实现的类实例方法,例如[`Model.save ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)或[`Model.create ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)。如果您声明的字段名称与模型方法一致，则可能会导致问题。考虑:
+类实现的类实例方法,例如[`Model.save ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)或[`Model.create ()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)。如果您声明的字段名称与模型方法一致
+
+，则可能会导致问题。考虑:
 
 ```python
 class LogEntry(Model):

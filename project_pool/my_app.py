@@ -21,15 +21,22 @@ from datetime import date
 # logger.setLevel(logging.DEBUG)
 
 # 前期配置
-database = SqliteDatabase('pool.db')
+database = SqliteDatabase('xh4dsyd2fk.db')
 
 # 数据结构
 class BaseModel(Model):
    class Meta():
        database = database
 
+
 class Member(BaseModel):
-    name    = CharField(unique=True)
+    name = CharField(unique=True)
+
+
+class Report(BaseModel):
+    menber = ForeignKeyField(Member, backref='reports')
+    date = DateField(formats='%Y-%m-%d', default = date.today)
+    info = TextField()
 
 
 class Project(BaseModel):
@@ -39,13 +46,9 @@ class Project(BaseModel):
     scheme  = CharField()
     info = CharField()
 
-    def progress(self):
-        pass
-
 
 class Product(BaseModel):
     proj     = ForeignKeyField(Project, backref='prods')
-    member   = ForeignKeyField(Member, backref='prods')
     catagory = CharField()
     amount   = FloatField()
     balance  = FloatField()
@@ -58,9 +61,9 @@ class Product(BaseModel):
 def db_init():
     if database.is_closed():
         database.connect()
-        database.create_tables([Member, Project, Product])
+        database.create_tables([Member, Report, Project, Product])
     else:
-        database.create_tables([Member, Project, Product])
+        database.create_tables([Member, Report, Project, Product])
 
     database.close()
 
@@ -75,7 +78,7 @@ def new_member(name_):
         Member.create(name = name_)
         print('{}已加入团队!'.format(name_))
     else:
-
+        pass
 
 def new_project(name_, member, scheme_):
     x = Project.create(name = name_, member = Member.select().where(Member.name == member), status = '营销中', scheme = scheme_)
@@ -176,6 +179,7 @@ def delete_proj():
 
 
     pass
+
 
 
 
