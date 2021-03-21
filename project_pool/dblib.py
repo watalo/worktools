@@ -80,6 +80,14 @@ def new_member(name_):
     else:
         pass
 
+def new_report(member_name, info):
+    if Member.get(Member.name == member_name):
+        member_obj = Member.get(Member.name == member_name)
+        Report.create(member = member_obj, info = info)
+    else:
+        return '{}成员不存在，请仔细检查！'.format(member_name)
+
+
 def new_project(name_, member, scheme_):
     x = Project.create(name = name_, member = Member.select().where(Member.name == member), status = '营销中', scheme = scheme_)
     res = '新项目:{n}授信项目已记录，由{m}管理，目前状态为{s}'.format(n = name_, m = x.member.name, s = x.status)
