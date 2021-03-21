@@ -16,7 +16,7 @@
 您可以使用[`model .create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)来创建一个新的模型实例。此方法接受关键字参数，其中的关键字对应于模型字段的名称.返回一个新的实例，并向表中添加一行。
 
 ```python
->>> User.create(username='Charlie')
+>>> User.create(username=`Charlie`)
 <__main__.User object at 0x2529350>
 ```
 
@@ -25,13 +25,13 @@
 或者，您可以通过编程方式构建一个模型实例，然后调用[`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save):
 
 ```python
->>> user = User(username='Charlie')
+>>> user = User(username=`Charlie`)
 >>> user.save()  # save() returns the number of rows modified.
 1
 >>> user.id
 1
 >>> huey = User()
->>> huey.username = 'Huey'
+>>> huey.username = `Huey`
 >>> huey.save()
 1
 >>> huey.id
@@ -41,19 +41,19 @@
 当一个模型有一个外键时，您可以在创建一个新记录时直接将一个模型实例分配给外键字段。
 
 ```python
->>> tweet = Tweet.create(user=huey, message='Hello!')
+>>> tweet = Tweet.create(user=huey, message=`Hello!`)
 ```
 
 你也可以使用相关对象的主键值:
 
 ```python
->>> tweet = Tweet.create(user=2, message='Hello again!')
+>>> tweet = Tweet.create(user=2, message=`Hello again!`)
 ```
 
 如果您只是希望插入数据而不需要创建模型实例，可以使用[`model .insert()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert):
 
 ```python
->>> User.insert(username='Mickey').execute()
+>>> User.insert(username=`Mickey`).execute()
 3
 ```
 
@@ -72,8 +72,8 @@
 
 ```python
 data_source = [
-    {'field1': 'val1-1', 'field2': 'val1-2'},
-    {'field1': 'val2-1', 'field2': 'val2-2'},
+    {`field1`: `val1-1`, `field2`: `val1-2`},
+    {`field1`: `val2-1`, `field2`: `val2-2`},
     # ...
 ]
 
@@ -83,7 +83,7 @@ for data_dict in data_source:
 
 上述方法之所以缓慢，有以下几个原因:
 
-1. 如果你没有将循环包装在一个事务中，那么每次对[' create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)的调用都会发生在它自己的事务中。那将会非常缓慢!
+1. 如果你没有将循环包装在一个事务中，那么每次对[` create() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.create)的调用都会发生在它自己的事务中。那将会非常缓慢!
 
 2. 有相当多的Python逻辑阻碍你，每个`InsertQuery`都必须生成并解析为SQL。
 
@@ -105,8 +105,8 @@ with db.atomic():
 
 ```python
 data_source = [
-    {'field1': 'val1-1', 'field2': 'val1-2'},
-    {'field1': 'val2-1', 'field2': 'val2-2'},
+    {`field1`: `val1-1`, `field2`: `val1-2`},
+    {`field1`: `val2-1`, `field2`: `val2-2`},
     # ...
 ]
 
@@ -118,9 +118,9 @@ MyModel.insert_many(data_source).execute()
 
 ```python
 # We can INSERT tuples as well...
-data = [('val1-1', 'val1-2'),
-        ('val2-1', 'val2-2'),
-        ('val3-1', 'val3-2')]
+data = [(`val1-1`, `val1-2`),
+        (`val2-1`, `val2-2`),
+        (`val3-1`, `val3-2`)]
 
 # But we need to indicate which fields the values correspond to.
 MyModel.insert_many(data, fields=[MyModel.field1, MyModel.field2]).execute()
@@ -171,7 +171,7 @@ with db.atomic():
 
 ```python
 # Read list of usernames from a file, for example.
-with open('user_list.txt') as fh:
+with open(`user_list.txt`) as fh:
     # Create a list of unsaved User instances.
     users = [User(username=line.strip()) for line in fh.readlines()]
 
@@ -190,12 +190,12 @@ with db.atomic():
 
 ```python
 # First, create 3 users with usernames u1, u2, u3.
-u1, u2, u3 = [User.create(username='u%s' % i) for i in (1, 2, 3)]
+u1, u2, u3 = [User.create(username=`u%s` % i) for i in (1, 2, 3)]
 
-# Now we'll modify the user instances.
-u1.username = 'u1-x'
-u2.username = 'u2-y'
-u3.username = 'u3-z'
+# Now we`ll modify the user instances.
+u1.username = `u1-x`
+u2.username = `u2-y`
+u3.username = `u3-z`
 
 # Update all three users with a single UPDATE query.
 User.bulk_update([u1, u2, u3], fields=[User.username])
@@ -207,20 +207,20 @@ For large lists of objects, you should specify a reasonable batch_size and wrap 
 
 请注意
 
-对于大型对象列表，应该指定一个合理的batch_size，并使用[' Database.atomic() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic):)包装对[' bulk_update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的调用
+对于大型对象列表，应该指定一个合理的batch_size，并使用[` Database.atomic() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.atomic):)包装对[`bulk_update() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的调用
 
 ```python
 with database.atomic():
-    User.bulk_update(list_of_users, fields=['username'], batch_size=50)
+    User.bulk_update(list_of_users, fields=[`username`], batch_size=50)
 ```
 
 Alternatively, you can use the [`Database.batch_commit()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.batch_commit) helper to process chunks of rows inside *batch*-sized transactions. This method also provides a workaround for databases besides Postgresql, when the primary-key of the newly-created rows must be obtained.
 
-另外，你也可以使用[' Database.batch_commit() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.batch_commit)帮助器在批量大小的事务中处理行块。该方法还为Postgresql以外的数据库提供了一种解决方案，当必须获取新创建行的主键时。
+另外，你也可以使用[`Database.batch_commit() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.batch_commit)帮助器在批量大小的事务中处理行块。该方法还为Postgresql以外的数据库提供了一种解决方案，当必须获取新创建行的主键时。
 
 ```python
 # List of row data to insert.
-row_data = [{'username': 'u1'}, {'username': 'u2'}, ...]
+row_data = [{`username`: `u1`}, {`username`: `u2`}, ...]
 
 # Assume there are 789 items in row_data. The following code will result in
 # 8 total transactions (7x100 rows + 1x89 rows).
@@ -232,7 +232,7 @@ for row in db.batch_commit(row_data, 100):
 
 If the data you would like to bulk load is stored in another table, you can also create *INSERT* queries whose source is a *SELECT* query. Use the [`Model.insert_from()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_from) method:
 
-如果要批量加载的数据存储在另一个表中，您还可以创建源为*SELECT*查询的*INSERT*查询。使用[' Model.insert_from() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_from)方法:
+如果要批量加载的数据存储在另一个表中，您还可以创建源为*SELECT*查询的*INSERT*查询。使用[` Model.insert_from() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.insert_from)方法:
 
 ```python
 res = (TweetArchive
@@ -255,7 +255,7 @@ SELECT "user_id", "message" FROM "tweet";
 
 Once a model instance has a primary key, any subsequent call to [`save()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save) will result in an *UPDATE* rather than another *INSERT*. The model’s primary key will not change:
 
-一旦模型实例有了主键，后续对[' save() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)的任何调用都会导致一个*UPDATE*而不是另一个*INSERT*。模型的主键不会改变:
+一旦模型实例有了主键，后续对[` save() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.save)的任何调用都会导致一个*UPDATE*而不是另一个*INSERT*。模型的主键不会改变:
 
 ```python
 >>> user.save()  # save() returns the number of rows modified.
@@ -273,7 +273,7 @@ Once a model instance has a primary key, any subsequent call to [`save()`](http:
 
 If you want to update multiple records, issue an *UPDATE* query. The following example will update all `Tweet` objects, marking them as *published*, if they were created before today. [`Model.update()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update) accepts keyword arguments where the keys correspond to the model’s field names:
 
-如果你想更新多条记录，发出一个* update *查询。下面的例子将更新所有的‘Tweet’对象，如果它们是在今天之前创建的，则将它们标记为*published*。[' model .update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)接受关键字参数，关键字对应模型的字段名:
+如果你想更新多条记录，发出一个* update *查询。下面的例子将更新所有的‘Tweet’对象，如果它们是在今天之前创建的，则将它们标记为*published*。[` model .update() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)接受关键字参数，关键字对应模型的字段名:
 
 ```python
 >>> today = datetime.today()
@@ -288,7 +288,7 @@ Note
 
 If you would like more information on performing atomic updates (such as incrementing the value of a column), check out the [atomic update](http://docs.peewee-orm.com/en/latest/peewee/querying.html#atomic-updates) recipes.
 
-更多信息，请参阅[' Model.update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)， [' Update '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Update)和[' Model.bulk_update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的文档。
+更多信息，请参阅[` Model.update() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update)， [` Update `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Update)和[` Model.bulk_update() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.bulk_update)的文档。
 
 请注意
 
@@ -312,7 +312,7 @@ Instead, you can update the counters atomically using [`update()`](http://docs.p
 
 不要这样做!**这不仅很慢，而且如果多个进程同时更新计数器，它还容易受到竞争条件的影响。
 
-相反，您可以使用[' update() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update):)自动更新计数器
+相反，您可以使用[` update() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.update):)自动更新计数器
 
 ```python
 >>> query = Stat.update(counter=Stat.counter + 1).where(Stat.url == request.url)
@@ -330,7 +330,7 @@ You can make these update statements as complex as you like. Let’s give all ou
 
 We can even use a subquery to update the value of a column. Suppose we had a denormalized column on the `User` model that stored the number of tweets a user had made, and we updated this value periodically. Here is how you might write such a query:
 
-我们甚至可以使用子查询来更新列的值。假设我们在“User”模型上有一个非规范化的列，该列存储了用户发出的tweet数量，我们定期更新这个值。下面是如何编写这样的查询:
+我们甚至可以使用子查询来更新列的值。假设我们在`User`模型上有一个非规范化的列，该列存储了用户发出的tweet数量，我们定期更新这个值。下面是如何编写这样的查询:
 
 ```python
 >>> subquery = Tweet.select(fn.COUNT(Tweet.id)).where(Tweet.user == User.id)
@@ -344,9 +344,9 @@ Peewee provides support for varying types of upsert functionality. With SQLite p
 
 Example of using [`replace()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace) and [`on_conflict_replace()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_replace):
 
-Peewee支持各种类型的upsert功能。在3.24.0之前的SQLite和MySQL中，Peewee提供了[' replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)，它允许你插入一条记录，或者在违反约束的情况下，替换现有的记录。
+Peewee支持各种类型的upsert功能。在3.24.0之前的SQLite和MySQL中，Peewee提供了[` replace() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)，它允许你插入一条记录，或者在违反约束的情况下，替换现有的记录。
 
-使用[' replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)和[' on_conflict_replace() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_replace):
+使用[` replace() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.replace)和[` on_conflict_replace() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_replace):
 
 ```python
 class User(Model):
@@ -356,12 +356,12 @@ class User(Model):
 # Insert or update the user. The "last_login" value will be updated
 # regardless of whether the user existed previously.
 user_id = (User
-           .replace(username='the-user', last_login=datetime.now())
+           .replace(username=`the-user`, last_login=datetime.now())
            .execute())
 
 # This query is equivalent:
 user_id = (User
-           .insert(username='the-user', last_login=datetime.now())
+           .insert(username=`the-user`, last_login=datetime.now())
            .on_conflict_replace()
            .execute())
 ```
@@ -374,7 +374,7 @@ In addition to *replace*, SQLite, MySQL and Postgresql provide an *ignore* actio
 
 请注意
 
-除了*replace*， SQLite, MySQL和Postgresql提供了一个*ignore*操作(参见:[' on_conflict_ignore() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_ignore))，如果你只是想插入和忽略任何潜在的约束违反。
+除了*replace*， SQLite, MySQL和Postgresql提供了一个*ignore*操作(参见:[` on_conflict_ignore() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict_ignore))，如果你只是想插入和忽略任何潜在的约束违反。
 
 **MySQL**通过*ON DUPLICATE KEY UPDATE*子句支持upsert。例如:
 
@@ -385,13 +385,13 @@ class User(Model):
     login_count = IntegerField()
 
 # Insert a new user.
-User.create(username='huey', login_count=0)
+User.create(username=`huey`, login_count=0)
 
 # Simulate the user logging in. The login count and timestamp will be
 # either created or updated correctly.
 now = datetime.now()
 rowid = (User
-         .insert(username='huey', last_login=now, login_count=1)
+         .insert(username=`huey`, last_login=now, login_count=1)
          .on_conflict(
              preserve=[User.last_login],  # Use the value we would have inserted.
              update={User.login_count: User.login_count + 1})
@@ -408,9 +408,7 @@ Example of using [`on_conflict()`](http://docs.peewee-orm.com/en/latest/peewee/a
 
 **Postgresql和SQLite**(3.24.0及更新版本)提供了不同的语法，允许更细粒度地控制哪些约束违反应该触发冲突解决，以及哪些值应该被更新或保留。
 
-
-
-使用[' on_conflict() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)执行postgresql风格的upsert(或SQLite 3.24+)的示例:
+使用[` on_conflict() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)执行postgresql风格的upsert(或SQLite 3.24+)的示例:
 
 ```python
 class User(Model):
@@ -419,13 +417,13 @@ class User(Model):
     login_count = IntegerField()
 
 # Insert a new user.
-User.create(username='huey', login_count=0)
+User.create(username=`huey`, login_count=0)
 
 # Simulate the user logging in. The login count and timestamp will be
 # either created or updated correctly.
 now = datetime.now()
 rowid = (User
-         .insert(username='huey', last_login=now, login_count=1)
+         .insert(username=`huey`, last_login=now, login_count=1)
          .on_conflict(
              conflict_target=[User.username],  # Which constraint?
              preserve=[User.last_login],  # Use the value we would have inserted.
@@ -441,18 +439,13 @@ The main difference between MySQL and Postgresql/SQLite is that Postgresql and S
 
 Here is a more advanced (if contrived) example using the [`EXCLUDED`](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED) namespace. The [`EXCLUDED`](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED) helper allows us to reference values in the conflicting data. For our example, we’ll assume a simple table mapping a unique key (string) to a value (integer):
 
-
-
-在上面的示例中，我们可以按照自己的意愿安全地多次调用upsert查询。
-登录计数将自动增加，最后的登录列将被更新，并且不会创建重复的行。
+在上面的示例中，我们可以按照自己的意愿安全地多次调用upsert查询。登录计数将自动增加，最后的登录列将被更新，并且不会创建重复的行。
 
 请注意
 
-MySQL和Postgresql/SQLite的主要区别是，Postgresql和SQLite要求你指定一个“conflict_target”。
+MySQL和Postgresql/SQLite的主要区别是，Postgresql和SQLite要求你指定一个`conflict_target`。
 
-下面是一个使用[' EXCLUDED '](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)命名空间的更高级(如果是人为的)示例。
-[' EXCLUDED '](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)帮助器允许我们引用冲突数据中的值。
-在我们的例子中，我们假设一个简单的表将一个唯一的键(字符串)映射到一个值(整数):
+下面是一个使用[` EXCLUDED `](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)命名空间的更高级(如果是人为的)示例。[` EXCLUDED `](http://docs.peewee-orm.com/en/latest/peewee/api.html#EXCLUDED)帮助器允许我们引用冲突数据中的值。在我们的例子中，我们假设一个简单的表将一个唯一的键(字符串)映射到一个值(整数):
 
 ```python
 class KV(Model):
@@ -460,21 +453,21 @@ class KV(Model):
     value = IntegerField()
 
 # Create one row.
-KV.create(key='k1', value=1)
+KV.create(key=`k1`, value=1)
 
 # Demonstrate usage of EXCLUDED.
 # Here we will attempt to insert a new value for a given key. If that
 # key already exists, then we will update its value with the *sum* of its
 # original value and the value we attempted to insert -- provided that
 # the new value is larger than the original value.
-query = (KV.insert(key='k1', value=10)
+query = (KV.insert(key=`k1`, value=10)
          .on_conflict(conflict_target=[KV.key],
                       update={KV.value: KV.value + EXCLUDED.value},
                       where=(EXCLUDED.value > KV.value)))
 
 # Executing the above query will result in the following data being
 # present in the "kv" table:
-# (key='k1', value=11)
+# (key=`k1`, value=11)
 query.execute()
 
 # If we attempted to execute the query *again*, then nothing would be
@@ -484,7 +477,7 @@ query.execute()
 
 For more information, see [`Insert.on_conflict()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict) and [`OnConflict`](http://docs.peewee-orm.com/en/latest/peewee/api.html#OnConflict).
 
-更多信息，请参见[' Insert.on_conflict() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)和[' OnConflict '](http://docs.peewee-orm.com/en/latest/peewee/api.html#OnConflict)。
+更多信息，请参见[` Insert.on_conflict() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert.on_conflict)和[` OnConflict `](http://docs.peewee-orm.com/en/latest/peewee/api.html#OnConflict)。
 
 ## Deleting records
 
@@ -542,26 +535,26 @@ This method is a shortcut that calls [`Model.select()`](http://docs.peewee-orm.c
 <__main__.User object at 0x252dd10>
 
 >>> User.get(User.id == 1).username
-u'Charlie'
+u`Charlie`
 
->>> User.get(User.username == 'Charlie')
+>>> User.get(User.username == `Charlie`)
 <__main__.User object at 0x2529410>
 
->>> User.get(User.username == 'nobody')
+>>> User.get(User.username == `nobody`)
 UserDoesNotExist: instance matching query does not exist:
 SQL: SELECT t1."id", t1."username" FROM "user" AS t1 WHERE t1."username" = ?
-PARAMS: ['nobody']
+PARAMS: [`nobody`]
 ```
 
 For more advanced operations, you can use [`SelectBase.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get). The following query retrieves the latest tweet from the user named *charlie*:
 
-对于更高级的操作，您可以使用[' SelectBase.get() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get)。下面的查询检索名为*charlie*的用户的最新tweet:
+对于更高级的操作，您可以使用[` SelectBase.get() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get)。下面的查询检索名为*charlie*的用户的最新tweet:
 
 ```python
 >>> (Tweet
 ...  .select()
 ...  .join(User)
-...  .where(User.username == 'charlie')
+...  .where(User.username == `charlie`)
 ...  .order_by(Tweet.created_date.desc())
 ...  .get())
 <__main__.Tweet object at 0x2623410>
@@ -571,7 +564,7 @@ For more advanced operations, you can use [`SelectBase.get()`](http://docs.peewe
 
 - [`Model.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get)
 - [`Model.get_by_id()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_by_id)
-- [`Model.get_or_none()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_none) - if no matching row is found, return `None`.如果没有找到匹配的行，则返回` None `'。
+- [`Model.get_or_none()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_none) - if no matching row is found, return `None`.如果没有找到匹配的行，则返回` None ``。
 - `Model.first()`
 - [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)
 - [`SelectBase.get()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectBase.get)
@@ -625,16 +618,16 @@ Suppose we have a different model `Person` and would like to get or create a per
 person, created = Person.get_or_create(
     first_name=first_name,
     last_name=last_name,
-    defaults={'dob': dob, 'favorite_color': 'green'})
+    defaults={`dob`: dob, `favorite_color`: `green`})
 ```
 
 Any keyword argument passed to [`get_or_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create) will be used in the `get()` portion of the logic, except for the `defaults` dictionary, which will be used to populate values on newly-created instances.
 
 For more details read the documentation for [`Model.get_or_create()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create).
 
-传递给[' get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的任何关键字参数都将在逻辑的' get() '部分中使用，除了' defaults '字典，它将用于填充新创建实例的值。
+传递给[` get_or_create() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的任何关键字参数都将在逻辑的` get() `部分中使用，除了` defaults `字典，它将用于填充新创建实例的值。
 
-要了解更多细节，请阅读[' Model.get_or_create() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的文档。
+要了解更多细节，请阅读[` Model.get_or_create() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.get_or_create)的文档。
 
 
 
@@ -642,22 +635,18 @@ For more details read the documentation for [`Model.get_or_create()`](http://doc
 
 We can use [`Model.select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select) to retrieve rows from the table. When you construct a *SELECT* query, the database will return any rows that correspond to your query. Peewee allows you to iterate over these rows, as well as use indexing and slicing operations:
 
-
-
-我们可以使用[' Model.select() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)从表中检索行。
-当您构造一个*SELECT*查询时，数据库将返回与您的查询对应的任何行。
-Peewee允许你遍历这些行，以及使用索引和切片操作:
+我们可以使用[` Model.select() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)从表中检索行。当您构造一个*SELECT*查询时，数据库将返回与您的查询对应的任何行。Peewee允许你遍历这些行，以及使用索引和切片操作:
 
 ```python
 >>> query = User.select()
 >>> [user.username for user in query]
-['Charlie', 'Huey', 'Peewee']
+[`Charlie`, `Huey`, `Peewee`]
 
 >>> query[1]
 <__main__.User at 0x7f83e80f5550>
 
 >>> query[1].username
-'Huey'
+`Huey`
 
 >>> query[:2]
 [<__main__.User at 0x7f83e80f53a8>, <__main__.User at 0x7f83e80f5550>]
@@ -667,13 +656,9 @@ Peewee允许你遍历这些行，以及使用索引和切片操作:
 
 In the following example, we will simply call [`select()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select) and iterate over the return value, which is an instance of [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select). This will return all the rows in the *User* table:
 
-[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询是聪明的，因为您可以迭代、索引和切片查询多次，但查询只执行一次。
+[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询是聪明的，因为您可以迭代、索引和切片查询多次，但查询只执行一次。
 
-
-
-在下面的示例中，我们将简单地调用[' select() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)并迭代返回值，该值是[' select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)的一个实例。这将返回*User*表中的所有行:
-
-
+在下面的示例中，我们将简单地调用[` select() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model.select)并迭代返回值，该值是[` select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)的一个实例。这将返回*User*表中的所有行:
 
 ```python
 >>> for user in User.select():
@@ -694,15 +679,11 @@ When you create a foreign key, such as `Tweet.user`, you can use the *backref* t
 
 请注意
 
-
-
-当结果被缓存时，相同查询的后续迭代将不会到达数据库。要禁用此行为(以减少内存使用)，在迭代时调用' Select.iterator() '。
+`Select.iterator() `。
 
 在迭代包含外键的模型时，要小心访问相关模型上的值的方式。意外解析外键或遍历反向引用可能导致[N+1查询行为](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#nplusone)。
 
-当你创建一个外键，例如' Tweet。用户'，你可以使用*backref*创建一个反向引用(' user .tweets ')。反向引用被公开为[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)实例:
-
-
+当你创建一个外键，例如` Tweet。用户`，你可以使用*backref*创建一个反向引用(` user .tweets `)。反向引用被公开为[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)实例:
 
 ```python
 >>> tweet = Tweet.get()
@@ -727,16 +708,16 @@ look at this picture of my food
 
 In addition to returning model instances, [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) queries can return dictionaries, tuples and namedtuples. Depending on your use-case, you may find it easier to work with rows as dictionaries, for example:
 
-除了返回模型实例，[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询还可以返回字典、元组和命名元组。根据您的用例，您可能会发现将行作为字典来处理更容易，例如:
+除了返回模型实例，[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询还可以返回字典、元组和命名元组。根据您的用例，您可能会发现将行作为字典来处理更容易，例如:
 
 ```python
 >>> query = User.select().dicts()
 >>> for row in query:
 ...     print(row)
 
-{'id': 1, 'username': 'Charlie'}
-{'id': 2, 'username': 'Huey'}
-{'id': 3, 'username': 'Peewee'}
+{`id`: 1, `username`: `Charlie`}
+{`id`: 2, `username`: `Huey`}
+{`id`: 3, `username`: `Peewee`}
 ```
 
 See [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples), [`tuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples), [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts) for more information.
@@ -747,14 +728,12 @@ By default peewee will cache the rows returned when iterating over a [`Select`](
 
 To reduce the amount of memory used by peewee when iterating over a query, use the [`iterator()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator) method. This method allows you to iterate without caching each model returned, using much less memory when iterating over large result sets.
 
-默认情况下，peewee在迭代[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询时将缓存返回的行。这是一种优化，允许多次迭代以及索引和切片，而不会导致额外的查询。然而，当您计划遍历大量行时，这种缓存可能会产生问题。
+默认情况下，peewee在迭代[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询时将缓存返回的行。这是一种优化，允许多次迭代以及索引和切片，而不会导致额外的查询。然而，当您计划遍历大量行时，这种缓存可能会产生问题。
 
-为了减少peewee在迭代查询时所使用的内存，可以使用[' iterator() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法。该方法允许您在不缓存返回的每个模型的情况下进行迭代，在迭代大型结果集时使用更少的内存。
-
-
+为了减少peewee在迭代查询时所使用的内存，可以使用[` iterator() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法。该方法允许您在不缓存返回的每个模型的情况下进行迭代，在迭代大型结果集时使用更少的内存。
 
 ```python
-# Let's assume we've got 10 million stat objects to dump to a csv file.
+# Let`s assume we`ve got 10 million stat objects to dump to a csv file.
 stats = Stat.select()
 
 # Our imaginary serializer class
@@ -767,7 +746,7 @@ for stat in stats.iterator():
 
 For simple queries you can see further speed improvements by returning rows as dictionaries, namedtuples or tuples. The following methods can be used on any [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query to change the result row type:
 
-对于简单的查询，您可以通过将行返回为字典、命名元组或元组来进一步提高速度。以下方法可用于任何[' Select '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询，以更改结果行类型:
+对于简单的查询，您可以通过将行返回为字典、命名元组或元组来进一步提高速度。以下方法可用于任何[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询，以更改结果行类型:
 
 - [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts)
 - [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples)
@@ -775,10 +754,10 @@ For simple queries you can see further speed improvements by returning rows as d
 
 Don’t forget to append the [`iterator()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator) method call to also reduce memory consumption. For example, the above code might look like:
 
-不要忘记附加[' iterator() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法调用，以减少内存消耗。例如，上面的代码可能看起来像:
+不要忘记附加[` iterator() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.iterator)方法调用，以减少内存消耗。例如，上面的代码可能看起来像:
 
 ```python
-# Let's assume we've got 10 million stat objects to dump to a csv file.
+# Let`s assume we`ve got 10 million stat objects to dump to a csv file.
 stats = Stat.select()
 
 # Our imaginary serializer class
@@ -793,7 +772,7 @@ When iterating over a large number of rows that contain columns from multiple ta
 
 For example:
 
-当迭代大量包含来自多个表的列的行时，peewee将为返回的每一行重构模型图。对于复杂的图形，此操作可能会比较慢。例如，如果我们选择一个tweet列表以及tweet作者的用户名和头像，Peewee就必须为每一行创建两个对象(一条tweet和一个用户)。除了上面的行类型之外，还有第四个方法[' objects() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects)，它将返回作为模型实例的行，但不会尝试解析模型图。
+当迭代大量包含来自多个表的列的行时，peewee将为返回的每一行重构模型图。对于复杂的图形，此操作可能会比较慢。例如，如果我们选择一个tweet列表以及tweet作者的用户名和头像，Peewee就必须为每一行创建两个对象(一条tweet和一个用户)。除了上面的行类型之外，还有第四个方法[` objects() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects)，它将返回作为模型实例的行，但不会尝试解析模型图。
 
 例如:
 
@@ -815,31 +794,25 @@ for tweet in query.objects():
 
 For maximum performance, you can execute queries and then iterate over the results using the underlying database cursor. [`Database.execute()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute) accepts a query object, executes the query, and returns a DB-API 2.0 `Cursor` object. The cursor will return the raw row-tuples:
 
-
-
-为了获得最佳性能，可以执行查询，然后使用底层数据库游标迭代结果。[' Database.execute() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute)接受一个查询对象，执行该查询，并返回一个DB-API 2.0 ' Cursor '对象。游标将返回原始的行元组:
-
-
+为了获得最佳性能，可以执行查询，然后使用底层数据库游标迭代结果。[` Database.execute() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Database.execute)接受一个查询对象，执行该查询，并返回一个DB-API 2.0 ` Cursor `对象。游标将返回原始的行元组:
 
 ```python
 query = Tweet.select(Tweet.content, User.username).join(User)
 cursor = database.execute(query)
 for (content, username) in cursor:
-    print(username, '->', content)
+    print(username, `->`, content)
 ```
 
 ## Filtering records 过滤记录
 
 You can filter for particular records using normal python operators. Peewee supports a wide variety of [query operators](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators).
 
-
-
 您可以使用普通的python操作符过滤特定的记录。Peewee支持多种[查询操作符](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators)。
 
 ```python
->>> user = User.get(User.username == 'Charlie')
+>>> user = User.get(User.username == `Charlie`)
 >>> for tweet in Tweet.select().where(Tweet.user == user, Tweet.is_published == True):
-...     print(tweet.user.username, '->', tweet.message)
+...     print(tweet.user.username, `->`, tweet.message)
 ...
 Charlie -> hello world
 Charlie -> this is fun
@@ -855,7 +828,7 @@ You can also filter across joins:
 你也可以过滤连接:
 
 ```python
->>> for tweet in Tweet.select().join(User).where(User.username == 'Charlie'):
+>>> for tweet in Tweet.select().join(User).where(User.username == `Charlie`):
 ...     print(tweet.message)
 hello world
 this is fun
@@ -868,8 +841,8 @@ If you want to express a complex query, use parentheses and python’s bitwise *
 
 ```python
 >>> Tweet.select().join(User).where(
-...     (User.username == 'Charlie') |
-...     (User.username == 'Peewee Herman'))
+...     (User.username == `Charlie`) |
+...     (User.username == `Peewee Herman`))
 ```
 
 Note
@@ -882,17 +855,15 @@ Note
 
 A lot of fun things can go in the where clause of a query, such as:
 
-- A field expression, e.g. `User.username == 'Charlie'`
-- A function expression, e.g. `fn.Lower(fn.Substr(User.username, 1, 1)) == 'a'`
+- A field expression, e.g. `User.username == `Charlie``
+- A function expression, e.g. `fn.Lower(fn.Substr(User.username, 1, 1)) == `a``
 - A comparison of one column to another, e.g. `Employee.salary < (Employee.tenure * 1000) + 40000`
 
 You can also nest queries, for example tweets by users whose username starts with “a”:
 
-
-
 请注意
 
-注意，Peewee使用**位**操作符(' & '和' | ')而不是逻辑操作符(' and '和' or ')。这是因为Python将逻辑操作的返回值强制转换为布尔值。这也是为什么“IN”查询必须使用' .in_() '而不是' IN '操作符来表示的原因。
+注意，Peewee使用**位**操作符(` & `和` | `)而不是逻辑操作符(` and `和` or `)。这是因为Python将逻辑操作的返回值强制转换为布尔值。这也是为什么“IN”查询必须使用` .in_() `而不是` IN `操作符来表示的原因。
 
 请参阅[查询操作表](http://docs.peewee-orm.com/en/latest/peewee/query_operators.html#query-operators)，了解可能的查询类型。
 
@@ -902,9 +873,9 @@ You can also nest queries, for example tweets by users whose username starts wit
 
 - 字段表达式，例如。的用户。用户名= =“查理”的
 
-- 一个函数表达式，例如:“fn.Lower (fn.Substr(用户。用户名，1,1))== 'a' '
+- 一个函数表达式，例如:“fn.Lower (fn.Substr(用户。用户名，1,1))== `a` `
 
-- 一栏与另一栏的比较，例如:的员工。工资& lt;(员工。任期* 1000)+ 40000 '
+- 一栏与另一栏的比较，例如:的员工。工资& lt;(员工。任期* 1000)+ 40000 `
 
 您还可以嵌套查询，例如用户名以“a”开头的用户发布的tweet:
 
@@ -912,7 +883,7 @@ You can also nest queries, for example tweets by users whose username starts wit
 
 ```python
 # get users whose username starts with "a"
-a_users = User.select().where(fn.Lower(fn.Substr(User.username, 1, 1)) == 'a')
+a_users = User.select().where(fn.Lower(fn.Substr(User.username, 1, 1)) == `a`)
 
 # the ".in_()" method signifies an "IN" query
 a_user_tweets = Tweet.select().where(Tweet.user.in_(a_users))
@@ -949,10 +920,8 @@ Get tweets by user named “charlie”:
 
 通过名为“charlie”的用户获取tweets:
 
-
-
 ```python
-Tweet.select().join(User).where(User.username == 'charlie')
+Tweet.select().join(User).where(User.username == `charlie`)
 ```
 
 Get tweets by staff or superusers (assumes FK relationship):
@@ -978,7 +947,7 @@ Tweet.select().where(Tweet.user.in_(staff_super))
 
 To return rows in order, use the [`order_by()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.order_by) method:
 
-要按顺序返回行，请使用[' order_by() '](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.order_by)方法:
+要按顺序返回行，请使用[` order_by() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.order_by)方法:
 
 ```python
 >>> for t in Tweet.select().order_by(Tweet.created_date):
@@ -998,7 +967,7 @@ To return rows in order, use the [`order_by()`](http://docs.peewee-orm.com/en/la
 
 You can also use `+` and `-` prefix operators to indicate ordering:
 
-还可以使用' + '和' - '前缀操作符来表示顺序:
+还可以使用` + `和` - `前缀操作符来表示顺序:
 
 ```python
 # The following queries are equivalent:
@@ -1032,22 +1001,22 @@ When sorting on a calculated value, you can either include the necessary SQL exp
 在对计算值进行排序时，可以包括必要的SQL表达式，也可以引用分配给该值的别名。这里有两个例子来说明这些方法:
 
 ```python
-# Let's start with our base query. We want to get all usernames and the number of
-# tweets they've made. We wish to sort this list from users with most tweets to
+# Let`s start with our base query. We want to get all usernames and the number of
+# tweets they`ve made. We wish to sort this list from users with most tweets to
 # users with fewest tweets.
 query = (User
-         .select(User.username, fn.COUNT(Tweet.id).alias('num_tweets'))
+         .select(User.username, fn.COUNT(Tweet.id).alias(`num_tweets`))
          .join(Tweet, JOIN.LEFT_OUTER)
          .group_by(User.username))
 ```
 
 You can order using the same COUNT expression used in the `select` clause. In the example below we are ordering by the `COUNT()` of tweet ids descending:
 
-您可以使用与' select '子句中使用的COUNT表达式进行排序。在下面的例子中，我们根据tweet id的' COUNT() '降序排序:
+您可以使用与` select `子句中使用的COUNT表达式进行排序。在下面的例子中，我们根据tweet id的` COUNT() `降序排序:
 
 ```python
 query = (User
-         .select(User.username, fn.COUNT(Tweet.id).alias('num_tweets'))
+         .select(User.username, fn.COUNT(Tweet.id).alias(`num_tweets`))
          .join(Tweet, JOIN.LEFT_OUTER)
          .group_by(User.username)
          .order_by(fn.COUNT(Tweet.id).desc()))
@@ -1055,14 +1024,14 @@ query = (User
 
 Alternatively, you can reference the alias assigned to the calculated value in the `select` clause. This method has the benefit of being a bit easier to read. Note that we are not referring to the named alias directly, but are wrapping it using the [`SQL`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SQL) helper:
 
-或者，您可以引用在' select '子句中分配给计算值的别名。这种方法的好处是更容易阅读。注意，我们没有直接引用已命名的别名，而是使用[' SQL '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SQL)帮助器包装它:
+或者，您可以引用在` select `子句中分配给计算值的别名。这种方法的好处是更容易阅读。注意，我们没有直接引用已命名的别名，而是使用[` SQL `](http://docs.peewee-orm.com/en/latest/peewee/api.html#SQL)帮助器包装它:
 
 ```python
 query = (User
-         .select(User.username, fn.COUNT(Tweet.id).alias('num_tweets'))
+         .select(User.username, fn.COUNT(Tweet.id).alias(`num_tweets`))
          .join(Tweet, JOIN.LEFT_OUTER)
          .group_by(User.username)
-         .order_by(SQL('num_tweets').desc()))
+         .order_by(SQL(`num_tweets`).desc()))
 ```
 
 Or, to do things the “peewee” way:
@@ -1072,7 +1041,7 @@ Or, to do things the “peewee” way:
 ```python
 ntweets = fn.COUNT(Tweet.id)
 query = (User
-         .select(User.username, ntweets.alias('num_tweets'))
+         .select(User.username, ntweets.alias(`num_tweets`))
          .join(Tweet, JOIN.LEFT_OUTER)
          .group_by(User.username)
          .order_by(ntweets.desc())
@@ -1108,6 +1077,12 @@ Attention
 
 Page numbers are 1-based, so the first page of results will be page 1.
 
+[` paginate() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.paginate)方法可以很容易地抓取一个*页面*或记录。[` paginate() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.paginate)接受两个参数，` page_number `和` items_per_page `。
+
+注意
+
+页码是基于1的，所以结果的第一页将是第1页。
+
 ```python
 >>> for tweet in Tweet.select().order_by(Tweet.id).paginate(2, 10):
 ...     print(tweet.message)
@@ -1126,9 +1101,13 @@ tweet 19
 
 If you would like more granular control, you can always use [`limit()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.limit) and [`offset()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.offset).
 
+如果你想要更细粒度的控制，你可以使用[` limit() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.limit)和[` offset() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.offset)。
+
 ## Counting records
 
 You can count the number of rows in any select query:
+
+你可以在任何select查询中计算行数:
 
 ```python
 >>> Tweet.select().count()
@@ -1139,6 +1118,8 @@ You can count the number of rows in any select query:
 
 Peewee will wrap your query in an outer query that performs a count, which results in SQL like:
 
+Peewee将把你的查询包装在一个执行计数的外部查询中，结果SQL如下:
+
 ```python
 SELECT COUNT(1) FROM ( ... your query ... );
 ```
@@ -1147,20 +1128,22 @@ SELECT COUNT(1) FROM ( ... your query ... );
 
 Suppose you have some users and want to get a list of them along with the count of tweets in each.
 
+Peewee将把你的查询包装在一个执行计数的外部查询中，结果SQL如下:
+
 ```python
 query = (User
-         .select(User, fn.Count(Tweet.id).alias('count'))
+         .select(User, fn.Count(Tweet.id).alias(`count`))
          .join(Tweet, JOIN.LEFT_OUTER)
          .group_by(User))
 ```
 
 The resulting query will return *User* objects with all their normal attributes plus an additional attribute *count* which will contain the count of tweets for each user. We use a left outer join to include users who have no tweets.
 
-
+产生的查询将返回*User*对象及其所有正常属性，以及一个附加属性*count*，该属性将包含每个用户的tweet计数。我们使用左外连接来包含没有tweet的用户。
 
 Let’s assume you have a tagging application and want to find tags that have a certain number of related objects. For this example we’ll use some different models in a [many-to-many](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#manytomany) configuration:
 
-
+让我们假设您有一个标记应用程序，并希望找到具有一定数量相关对象的标记。在这个例子中，我们将在[多对多](http://docs.peewee-orm.com/en/latest/peewee/relationships.html#manytomany)配置中使用一些不同的模型:
 
 ```python
 class Photo(Model):
@@ -1176,6 +1159,8 @@ class PhotoTag(Model):
 
 Now say we want to find tags that have at least 5 photos associated with them:
 
+现在说我们想要找到至少有5张照片的标签:
+
 ```python
 query = (Tag
          .select()
@@ -1186,6 +1171,8 @@ query = (Tag
 ```
 
 This query is equivalent to the following SQL:
+
+这个查询等价于下面的SQL:
 
 ```python
 SELECT t1."id", t1."name"
@@ -1198,18 +1185,22 @@ HAVING Count(t3."id") > 5
 
 Suppose we want to grab the associated count and store it on the tag:
 
+假设我们想获取相关的计数并将其存储在标签上:
+
 ```python
 query = (Tag
-         .select(Tag, fn.Count(Photo.id).alias('count'))
+         .select(Tag, fn.Count(Photo.id).alias(`count`))
          .join(PhotoTag)
          .join(Photo)
          .group_by(Tag)
          .having(fn.Count(Photo.id) > 5))
 ```
 
-## Retrieving Scalar Values
+## Retrieving Scalar Values 检索标量值
 
 You can retrieve scalar values by calling `Query.scalar()`. For instance:
+
+你可以通过调用` Query.scalar() `来检索标量值。例如:
 
 ```python
 >>> PageView.select(fn.Count(fn.Distinct(PageView.url))).scalar()
@@ -1217,6 +1208,8 @@ You can retrieve scalar values by calling `Query.scalar()`. For instance:
 ```
 
 You can retrieve multiple scalar values by passing `as_tuple=True`:
+
+你可以通过传递` as_tuple=True `来获取多个标量值:
 
 ```python
 >>> Employee.select(
@@ -1227,7 +1220,7 @@ You can retrieve multiple scalar values by passing `as_tuple=True`:
 
 
 
-## Window functions
+## Window functions 窗口函数
 
 A [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) function refers to an aggregate function that operates on a sliding window of data that is being processed as part of a `SELECT` query. Window functions make it possible to do things like:
 
@@ -1239,6 +1232,19 @@ A [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) functi
 peewee comes with support for SQL window functions, which can be created by calling [`Function.over()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over) and passing in your partitioning or ordering parameters.
 
 For the following examples, we’ll use the following model and sample data:
+
+一个[` Window `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window)函数指的是一个聚合函数，它在一个滑动窗口上操作数据，该窗口作为` SELECT `查询的一部分正在被处理。窗口函数可以做以下事情:
+
+1. 对结果集的子集执行聚合。
+
+2. 计算一个累计总数。
+3. 排名结果。
+
+4. 将行值与前面(或后面!)行中的值进行比较。
+
+peewee支持SQL窗口函数，可以通过调用[` Function.over() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over)并传入分区或排序参数来创建。
+
+对于下面的例子，我们将使用以下模型和示例数据:
 
 ```python
 class Sample(Model):
@@ -1255,6 +1261,8 @@ Sample.insert_many(data, fields=[Sample.counter, Sample.value]).execute()
 
 Our sample table now contains:
 
+我们的示例表现在包含:
+
 | id   | counter | value |
 | ---- | ------- | ----- |
 | 1    | 1       | 10.0  |
@@ -1263,15 +1271,17 @@ Our sample table now contains:
 | 4    | 2       | 3.0   |
 | 5    | 3       | 100.0 |
 
-### Ordered Windows
+### Ordered Windows 有序窗口
 
 Let’s calculate a running sum of the `value` field. In order for it to be a “running” sum, we need it to be ordered, so we’ll order with respect to the Sample’s `id` field:
+
+让我们计算` value `字段的运行和。为了使它是一个“运行”和，我们需要它是有序的，所以我们将根据样本的` id `字段排序:
 
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
-    fn.SUM(Sample.value).over(order_by=[Sample.id]).alias('total'))
+    fn.SUM(Sample.value).over(order_by=[Sample.id]).alias(`total`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.total)
@@ -1285,12 +1295,14 @@ for sample in query:
 
 For another example, we’ll calculate the difference between the current value and the previous value, when ordered by the `id`:
 
+另一个例子，我们将计算当前值和前一个值的差值，当按` id `排序时:
+
 ```python
 difference = Sample.value - fn.LAG(Sample.value, 1).over(order_by=[Sample.id])
 query = Sample.select(
     Sample.counter,
     Sample.value,
-    difference.alias('diff'))
+    difference.alias(`diff`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.diff)
@@ -1302,15 +1314,18 @@ for sample in query:
 # 3   100     97.  -- (100 - 3)
 ```
 
-### Partitioned Windows
+### Partitioned Windows 分区窗口
 
 Let’s calculate the average `value` for each distinct “counter” value. Notice that there are three possible values for the `counter` field (1, 2, and 3). We can do this by calculating the `AVG()` of the `value` column over a window that is partitioned depending on the `counter` field:
+
+让我们计算每个“计数器”值的平均值。
+请注意，“counter”字段有三种可能的值(1、2和3)。我们可以通过计算根据“counter”字段进行分区的窗口上的“value”列的“AVG()”来实现这一点:
 
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
-    fn.AVG(Sample.value).over(partition_by=[Sample.counter]).alias('cavg'))
+    fn.AVG(Sample.value).over(partition_by=[Sample.counter]).alias(`cavg`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.cavg)
@@ -1324,13 +1339,15 @@ for sample in query:
 
 We can use ordering within partitions by specifying both the `order_by` and `partition_by` parameters. For an example, let’s rank the samples by value within each distinct `counter` group.
 
+我们可以通过指定` order_by `和` partition_by `参数在分区内使用排序。例如，让我们在每个不同的“计数器”组中按值对样本进行排序。
+
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
     fn.RANK().over(
         order_by=[Sample.value],
-        partition_by=[Sample.counter]).alias('rank'))
+        partition_by=[Sample.counter]).alias(`rank`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.rank)
@@ -1342,7 +1359,7 @@ for sample in query:
 # 3   100     1
 ```
 
-### Bounded windows
+### Bounded windows 有界窗口
 
 By default, window functions are evaluated using an *unbounded preceding* start for the window, and the *current row* as the end. We can change the bounds of the window our aggregate functions operate on by specifying a `start` and/or `end` in the call to [`Function.over()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over). Additionally, Peewee comes with helper-methods on the [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) object for generating the appropriate boundary references:
 
@@ -1352,6 +1369,14 @@ By default, window functions are evaluated using an *unbounded preceding* start 
 
 To examine how boundaries work, we’ll calculate a running total of the `value` column, ordered with respect to `id`, **but** we’ll only look the running total of the current row and it’s two preceding rows:
 
+默认情况下，窗口函数的计算使用*无界的前面*开始，*当前行*作为结束。可以通过在[` Function.over() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over)的调用中指定` start `和/或` end `来更改聚合函数所操作的窗口边界。此外，Peewee在[` Window `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window)对象上附带了helper-methods来生成适当的边界引用:
+
+- [` Window.CURRENT_ROW `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.CURRENT_ROW) -引用当前行的属性。
+- [` window .前款()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.preceding) -指定前面的行数，或省略数字表示**所有**前面的行。
+- [` Window.following() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.following) -指定后面的行数，或省略数字以表示**所有**后面的行。
+
+为了检查边界是如何工作的，我们将计算` value `列的运行总数，根据` id `排序，**但是**我们只查看当前行和前面两行的运行总数:
+
 ```python
 query = Sample.select(
     Sample.counter,
@@ -1359,7 +1384,7 @@ query = Sample.select(
     fn.SUM(Sample.value).over(
         order_by=[Sample.id],
         start=Window.preceding(2),
-        end=Window.CURRENT_ROW).alias('rsum'))
+        end=Window.CURRENT_ROW).alias(`rsum`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.rsum)
@@ -1377,6 +1402,14 @@ Technically we did not need to specify the `end=Window.CURRENT` because that is 
 
 Let’s look at another example. In this example we will calculate the “opposite” of a running total, in which the total sum of all values is decreased by the value of the samples, ordered by `id`. To accomplish this, we’ll calculate the sum from the current row to the last row.
 
+请注意
+
+技术上，我们不需要指定` end=Window。
+`因为这是默认值。并在实例中进行了演示。
+
+让我们看另一个例子。
+在本例中，我们将计算一个运行总数的"相反"，其中所有值的总和减去样本值，按`id`排序。为了实现这一点，我们将计算从当前行到最后一行的总和。
+
 ```python
 query = Sample.select(
     Sample.counter,
@@ -1384,7 +1417,7 @@ query = Sample.select(
     fn.SUM(Sample.value).over(
         order_by=[Sample.id],
         start=Window.CURRENT_ROW,
-        end=Window.following()).alias('rsum'))
+        end=Window.following()).alias(`rsum`))
 
 # 1    10.   134.  -- (10 + 20 + 1 + 3 + 100)
 # 1    20.   124.  -- (20 + 1 + 3 + 100)
@@ -1393,18 +1426,22 @@ query = Sample.select(
 # 3   100    100.  -- (100)
 ```
 
-### Filtered Aggregates
+### Filtered Aggregates 过滤聚合
 
 Aggregate functions may also support filter functions (Postgres and Sqlite 3.25+), which get translated into a `FILTER (WHERE...)` clause. Filter expressions are added to an aggregate function with the [`Function.filter()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.filter) method.
 
 For an example, we will calculate the running sum of the `value` field with respect to the `id`, but we will filter-out any samples whose `counter=2`.
+
+聚合函数也可能支持过滤函数(Postgres和Sqlite 3.25+)，这些函数会被转换成` filter (WHERE…)`子句。通过[` function.Filter () `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.filter)方法将过滤表达式添加到聚合函数中。
+
+例如，我们将计算关于` id `的` value `字段的运行和，但我们将过滤掉` counter=2 `的任何样本。
 
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
     fn.SUM(Sample.value).filter(Sample.counter != 2).over(
-        order_by=[Sample.id]).alias('csum'))
+        order_by=[Sample.id]).alias(`csum`))
 
 for sample in query:
     print(sample.counter, sample.value, sample.csum)
@@ -1420,11 +1457,19 @@ Note
 
 The call to [`filter()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.filter) must precede the call to [`over()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over).
 
-### Reusing Window Definitions
+请注意
+
+[` filter() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.filter)的调用必须在[` over() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over)的调用之前。
+
+### Reusing Window Definitions 复用窗口定义
 
 If you intend to use the same window definition for multiple aggregates, you can create a [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) object. The [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) object takes the same parameters as [`Function.over()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over), and can be passed to the `over()` method in-place of the individual parameters.
 
 Here we’ll declare a single window, ordered with respect to the sample `id`, and call several window functions using that window definition:
+
+如果你想对多个聚合使用相同的窗口定义，你可以创建一个[` window `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window)对象。[`Window `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window)对象接受与[` Function.over() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Function.over)相同的参数，并且可以被传递给` over() `方法来代替单独的参数。
+
+这里，我们将声明一个单独的窗口，根据示例` id `排序，并使用该窗口定义调用几个窗口函数:
 
 ```python
 win = Window(order_by=[Sample.id])
@@ -1447,18 +1492,20 @@ for row in query.tuples():
 # 3         100.    NULL     3.   134.
 ```
 
-### Multiple window definitions
+### Multiple window definitions 多个窗口定义
 
 In the previous example, we saw how to declare a [`Window`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window) definition and re-use it for multiple different aggregations. You can include as many window definitions as you need in your queries, but it is necessary to ensure each window has a unique alias:
 
+在前面的示例中，我们看到了如何声明[` Window `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window)定义，并将其用于多个不同的聚合。你可以在你的查询中包含尽可能多的窗口定义，但有必要确保每个窗口都有一个唯一的别名:
+
 ```python
-w1 = Window(order_by=[Sample.id]).alias('w1')
-w2 = Window(partition_by=[Sample.counter]).alias('w2')
+w1 = Window(order_by=[Sample.id]).alias(`w1`)
+w2 = Window(partition_by=[Sample.counter]).alias(`w2`)
 query = Sample.select(
     Sample.counter,
     Sample.value,
-    fn.SUM(Sample.value).over(w1).alias('rsum'),  # Running total.
-    fn.AVG(Sample.value).over(w2).alias('cavg')   # Avg per category.
+    fn.SUM(Sample.value).over(w1).alias(`rsum`),  # Running total.
+    fn.AVG(Sample.value).over(w2).alias(`cavg`)   # Avg per category.
 ).window(w1, w2)  # Include our window definitions.
 
 for sample in query:
@@ -1474,17 +1521,19 @@ for sample in query:
 
 Similarly, if you have multiple window definitions that share similar definitions, it is possible to extend a previously-defined window definition. For example, here we will be partitioning the data-set by the counter value, so we’ll be doing our aggregations with respect to the counter. Then we’ll define a second window that extends this partitioning, and adds an ordering clause:
 
+类似地，如果您有多个共享类似定义的窗口定义，则可以扩展先前定义的窗口定义。例如，这里我们将根据计数器的值对数据集进行分区，因此我们将针对计数器进行聚合。然后我们将定义第二个窗口来扩展这个分区，并添加一个order子句:
+
 ```python
-w1 = Window(partition_by=[Sample.counter]).alias('w1')
+w1 = Window(partition_by=[Sample.counter]).alias(`w1`)
 
 # By extending w1, this window definition will also be partitioned
 # by "counter".
-w2 = Window(extends=w1, order_by=[Sample.value.desc()]).alias('w2')
+w2 = Window(extends=w1, order_by=[Sample.value.desc()]).alias(`w2`)
 
 query = (Sample
          .select(Sample.counter, Sample.value,
-                 fn.SUM(Sample.value).over(w1).alias('group_sum'),
-                 fn.RANK().over(w2).alias('revrank'))
+                 fn.SUM(Sample.value).over(w1).alias(`group_sum`),
+                 fn.RANK().over(w2).alias(`revrank`))
          .window(w1, w2)
          .order_by(Sample.id))
 
@@ -1501,9 +1550,11 @@ for sample in query:
 
 
 
-### Frame types: RANGE vs ROWS vs GROUPS
+### Frame types: RANGE vs ROWS vs GROUPS 帧类型:范围vs行vs组
 
 Depending on the frame type, the database will process ordered groups differently. Let’s create two additional `Sample` rows to visualize the difference:
+
+根据帧类型的不同，数据库将以不同的方式处理排序的组。让我们创建两个额外的“示例”行来显示差异:
 
 ```python
 >>> Sample.create(counter=1, value=20.)
@@ -1513,6 +1564,8 @@ Depending on the frame type, the database will process ordered groups differentl
 ```
 
 Our table now contains:
+
+我们的表现在包含:
 
 | id   | counter | value |
 | ---- | ------- | ----- |
@@ -1532,13 +1585,23 @@ Let’s examine the difference by calculating a “running sum” of the samples
 
 The behavior of [`RANGE`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.RANGE), when there are logical duplicates, may lead to unexpected results:
 
+让我们通过计算样本的“运行和”(根据‘counter’和‘value’字段排序)来检查差异。要指定帧类型，可以使用以下两种方法:
+
+- [`Window.RANGE`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.RANGE)
+- [`Window.ROWS`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.ROWS)
+- [`Window.GROUPS`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.GROUPS)
+
+当存在逻辑重复时，[` RANGE `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.RANGE)的行为可能会导致意想不到的结果:
+
+
+
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
     fn.SUM(Sample.value).over(
         order_by=[Sample.counter, Sample.value],
-        frame_type=Window.RANGE).alias('rsum'))
+        frame_type=Window.RANGE).alias(`rsum`))
 
 for sample in query.order_by(Sample.counter, Sample.value):
     print(sample.counter, sample.value, sample.rsum)
@@ -1557,13 +1620,17 @@ With the inclusion of the new rows we now have some rows that have duplicate `ca
 
 The more expected result can be achieved by using [`ROWS`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.ROWS) as the frame-type:
 
+包含了新行之后，我们现在有了一些具有重复的“category”和“value”值的行。[` RANGE `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.RANGE)帧类型导致这些重复值一起计算，而不是单独计算。
+
+使用[` ROWS `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.ROWS)作为帧类型可以得到更期望的结果:
+
 ```python
 query = Sample.select(
     Sample.counter,
     Sample.value,
     fn.SUM(Sample.value).over(
         order_by=[Sample.counter, Sample.value],
-        frame_type=Window.ROWS).alias('rsum'))
+        frame_type=Window.ROWS).alias(`rsum`))
 
 for sample in query.order_by(Sample.counter, Sample.value):
     print(sample.counter, sample.value, sample.rsum)
@@ -1586,13 +1653,21 @@ Peewee uses these rules for determining what frame-type to use:
 
 The [`Window.GROUPS`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.GROUPS) frame type looks at the window range specification in terms of groups of rows, based on the ordering term(s). Using `GROUPS`, we can define the frame so it covers distinct groupings of rows. Let’s look at an example:
 
+Peewee使用这些规则来决定使用哪种帧类型:
+
+- 如果用户指定了 `frame_type`,将使用该帧类型。
+- 如果指定了` start `和/或` end `边界，Peewee将默认使用` ROWS `。
+- 如果用户没有指定帧类型或开始/结束边界，Peewee将使用数据库默认值“RANGE”。
+
+[` window.GROUPS `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Window.GROUPS)框架类型根据排序项，根据行的组来查看窗口范围规范。使用“GROUPS”，我们可以定义框架，使其涵盖不同的行分组。让我们来看一个例子:
+
 ```python
 query = (Sample
          .select(Sample.counter, Sample.value,
                  fn.SUM(Sample.value).over(
                     order_by=[Sample.counter, Sample.value],
                     frame_type=Window.GROUPS,
-                    start=Window.preceding(1)).alias('gsum'))
+                    start=Window.preceding(1)).alias(`gsum`))
          .order_by(Sample.counter, Sample.value))
 
 for sample in query:
@@ -1610,6 +1685,8 @@ for sample in query:
 
 As you can hopefully infer, the window is grouped by its ordering term, which is `(counter, value)`. We are looking at a window that extends between one previous group and the current group.
 
+正如你所希望的那样，窗口是根据它的排序项 `(counter, value)`分组的。我们看到的是一个窗口，它延伸到先前的组和当前组之间。
+
 Note
 
 For information about the window function APIs, see:
@@ -1622,6 +1699,10 @@ For general information on window functions, read the postgres [window functions
 
 Additionally, the [postgres docs](https://www.postgresql.org/docs/current/sql-select.html#SQL-WINDOW) and the [sqlite docs](https://www.sqlite.org/windowfunctions.html) contain a lot of good information.
 
+关于窗口函数的一般信息，请阅读postgres[窗口函数教程](https://www.postgresql.org/docs/current/tutorial-window.html)
+
+此外，[postgres docs](https://www.postgresql.org/docs/current/sql-select.html#SQL-WINDOW)和[sqlite docs](https://www.sqlite.org/windowfunctions.html)包含了很多有用的信息。
+
 
 
 ## Retrieving row tuples / dictionaries / namedtuples
@@ -1632,6 +1713,13 @@ Sometimes you do not need the overhead of creating model instances and simply wa
 - [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples)
 - [`tuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples)
 - [`objects()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects) – accepts an arbitrary constructor function which is called with the row tuple.
+
+有时您不需要创建模型实例的开销，只是想要遍历行数据，而不需要提供所有的api [` model `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model)。要做到这一点，使用:
+
+- [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts)
+- [`namedtuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.namedtuples)
+- [`tuples()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.tuples)
+- [`objects()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.objects) – 接受一个任意的构造函数，它被行元组调用。
 
 ```python
 stats = (Stat
@@ -1646,20 +1734,22 @@ for stat_url, stat_count in stats:
 
 Similarly, you can return the rows from the cursor as dictionaries using [`dicts()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts):
 
+类似地，您可以使用[` dicts() `](http://docs.peewee-orm.com/en/latest/peewee/api.html#BaseQuery.dicts):)将游标中的行作为字典返回
+
 ```python
 stats = (Stat
-         .select(Stat.url, fn.Count(Stat.url).alias('ct'))
+         .select(Stat.url, fn.Count(Stat.url).alias(`ct`))
          .group_by(Stat.url)
          .dicts())
 
 # iterate over a list of 2-tuples containing the url and count
 for stat in stats:
-    print(stat['url'], stat['ct'])
+    print(stat[`url`], stat[`ct`])
 ```
 
 
 
-## Returning Clause
+## Returning Clause 返回条款
 
 [`PostgresqlDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#PostgresqlDatabase) supports a `RETURNING` clause on `UPDATE`, `INSERT` and `DELETE` queries. Specifying a `RETURNING` clause allows you to iterate over the rows accessed by the query.
 
@@ -1674,6 +1764,23 @@ When a returning clause is used the return value upon executing a query will be 
 Postgresql allows, via the `RETURNING` clause, to return data from the rows inserted or modified by a query.
 
 For example, let’s say you have an [`Update`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Update) that deactivates all user accounts whose registration has expired. After deactivating them, you want to send each user an email letting them know their account was deactivated. Rather than writing two queries, a `SELECT` and an `UPDATE`, you can do this in a single `UPDATE` query with a `RETURNING` clause:
+
+[` PostgresqlDatabase `](http://docs.peewee-orm.com/en/latest/peewee/api.html#PostgresqlDatabase)支持在` UPDATE `， ` INSERT `和` DELETE `查询上使用` return `子句。
+指定` returned `子句允许您遍历查询访问的行。
+
+默认情况下，执行不同查询时的返回值为:
+
+- ` INSERT ` -自动增加新插入行的主键值。当不使用自动递增主键时，Postgres将返回新行的主键，但SQLite和MySQL不会。
+- ` UPDATE ` -修改的行数
+- ` DELETE ` -删除的行数
+
+当使用返回子句时，执行查询的返回值将是一个可迭代的游标对象。
+
+Postgresql允许通过` returns `子句从查询插入或修改的行返回数据。
+
+例如，假设您有一个[` Update `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Update)，它将使注册已过期的所有用户帐户失效。
+在停用它们之后，你要给每个用户发一封电子邮件，让他们知道他们的帐户被停用了。
+与其写两个查询，一个` SELECT `和一个` UPDATE `，你可以用一个` return `子句在一个` UPDATE `查询中完成:
 
 ```python
 query = (User
@@ -1692,9 +1799,19 @@ The only limitation of the `RETURNING` clause is that it can only consist of col
 
 As another example, let’s add a user and set their creation-date to the server-generated current timestamp. We’ll create and retrieve the new user’s ID, Email and the creation timestamp in a single query:
 
+在[` Insert `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Insert)和[` Delete `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Delete)上也可以使用` RETURNING `子句。
+当与` INSERT `一起使用时，将返回新创建的行。
+当与` DELETE `一起使用时，将返回被删除的行。
+
+` returns `子句的唯一限制是，它只能由查询的` from `子句中列出的表中的列组成。
+要选择特定表中的所有列，只需传入[` Model `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model)类。
+
+作为另一个示例，让我们添加一个用户，并将其创建日期设置为服务器生成的当前时间戳。
+我们将在单个查询中创建并检索新用户的ID、电子邮件和创建时间戳:
+
 ```python
 query = (User
-         .insert(email='foo@bar.com', created=fn.now())
+         .insert(email=`foo@bar.com`, created=fn.now())
          .returning(User))  # Shorthand for all columns on User.
 
 # When using RETURNING, execute() returns a cursor.
@@ -1702,27 +1819,31 @@ cursor = query.execute()
 
 # Get the user object we just inserted and log the data:
 user = cursor[0]
-logger.info('Created user %s (id=%s) at %s', user.email, user.id, user.created)
+logger.info(`Created user %s (id=%s) at %s`, user.email, user.id, user.created)
 ```
 
 By default the cursor will return [`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) instances, but you can specify a different row type:
 
+默认情况下，游标将返回[`Model`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Model) 实例，但你可以指定不同的行类型:
+
 ```python
-data = [{'name': 'charlie'}, {'name': 'huey'}, {'name': 'mickey'}]
+data = [{`name`: `charlie`}, {`name`: `huey`}, {`name`: `mickey`}]
 query = (User
          .insert_many(data)
          .returning(User.id, User.username)
          .dicts())
 
 for new_user in query.execute():
-    print('Added user "%s", id=%s' % (new_user['username'], new_user['id']))
+    print(`Added user "%s", id=%s` % (new_user[`username`], new_user[`id`]))
 ```
 
 Just as with [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) queries, you can specify various [result row types](http://docs.peewee-orm.com/en/latest/peewee/querying.html#rowtypes).
 
+与[` Select `](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询一样，您可以指定各种[结果行类型](http://docs.peewee-orm.com/en/latest/peewee/querying.html#rowtypes)。
 
 
-## Common Table Expressions
+
+## Common Table Expressions 公共表表达式
 
 Peewee supports the inclusion of common table expressions (CTEs) in all types of queries. CTEs may be useful for:
 
@@ -1732,9 +1853,20 @@ Peewee supports the inclusion of common table expressions (CTEs) in all types of
 
 To declare a [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query for use as a CTE, use [`cte()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectQuery.cte) method, which wraps the query in a [`CTE`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CTE) object. To indicate that a [`CTE`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CTE) should be included as part of a query, use the [`Query.with_cte()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.with_cte) method, passing a list of CTE objects.
 
+Peewee支持在所有类型的查询中包含公共表表达式(CTEs)。
+CTEs可能用于:
+
+- 分解出一个子查询。
+- 根据CTE结果集中派生的列进行分组或过滤。
+- 编写递归查询。
+
+要声明一个用作CTE的 [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询，可以用 [`cte()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SelectQuery.cte) 方法，它是包含了查询的CTE对象。要表明[`CTE`](http://docs.peewee-orm.com/en/latest/peewee/api.html#CTE)应该作为查询的一部分包含进来，请使用[`query .with_cte()`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Query.with_cte)方法，传递CTE对象的列表。
+
 ### Simple Example
 
 For an example, let’s say we have some data points that consist of a key and a floating-point value. Let’s define our model and populate some test data:
+
+例如，假设我们有一些由一个键和一个浮点值组成的数据点。让我们定义我们的模型并填充一些测试数据:
 
 ```python
 class Sample(Model):
@@ -1742,9 +1874,9 @@ class Sample(Model):
     value = FloatField()
 
 data = (
-    ('a', (1.25, 1.5, 1.75)),
-    ('b', (2.1, 2.3, 2.5, 2.7, 2.9)),
-    ('c', (3.5, 3.5)))
+    (`a`, (1.25, 1.5, 1.75)),
+    (`b`, (2.1, 2.3, 2.5, 2.7, 2.9)),
+    (`c`, (3.5, 3.5)))
 
 # Populate data.
 for key, values in data:
@@ -1754,17 +1886,19 @@ for key, values in data:
 
 Let’s use a CTE to calculate, for each distinct key, which values were above-average for that key.
 
+让我们使用CTE来计算每个不同的键的值，哪些值高于该键的平均值。
+
 ```python
-# First we'll declare the query that will be used as a CTE. This query
+# First we`ll declare the query that will be used as a CTE. This query
 # simply determines the average value for each key.
 cte = (Sample
-       .select(Sample.key, fn.AVG(Sample.value).alias('avg_value'))
+       .select(Sample.key, fn.AVG(Sample.value).alias(`avg_value`))
        .group_by(Sample.key)
-       .cte('key_avgs', columns=('key', 'avg_value')))
+       .cte(`key_avgs`, columns=(`key`, `avg_value`)))
 
-# Now we'll query the sample table, using our CTE to find rows whose value
-# exceeds the average for the given key. We'll calculate how far above the
-# average the given sample's value is, as well.
+# Now we`ll query the sample table, using our CTE to find rows whose value
+# exceeds the average for the given key. We`ll calculate how far above the
+# average the given sample`s value is, as well.
 query = (Sample
          .select(Sample.key, Sample.value)
          .join(cte, on=(Sample.key == cte.c.key))
@@ -1775,18 +1909,22 @@ query = (Sample
 
 We can iterate over the samples returned by the query to see which samples had above-average values for their given group:
 
+我们可以遍历查询返回的样本，看看哪些样本的值高于给定组的平均值:
+
 ```python
 >>> for sample in query:
 ...     print(sample.key, sample.value)
 
-# 'a', 1.75
-# 'b', 2.7
-# 'b', 2.9
+# `a`, 1.75
+# `b`, 2.7
+# `b`, 2.9
 ```
 
 ### Complex Example
 
 For a more complete example, let’s consider the following query which uses multiple CTEs to find per-product sales totals in only the top sales regions. Our model looks like this:
+
+对于一个更完整的示例，让我们考虑以下查询，该查询使用多个cte来查找仅在顶级销售区域中的每个产品销售总额。我们的模型是这样的:
 
 ```python
 class Order(Model):
@@ -1797,6 +1935,8 @@ class Order(Model):
 ```
 
 Here is how the query might be written in SQL. This example can be found in the [postgresql documentation](https://www.postgresql.org/docs/current/static/queries-with.html).
+
+下面是如何用SQL编写查询。这个例子可以在[postgresql文档](https://www.postgresql.org/docs/current/static/queries-with.html)中找到。
 
 ```python
 WITH regional_sales AS (
@@ -1817,32 +1957,32 @@ WHERE region IN (SELECT region FROM top_regions)
 GROUP BY region, product;
 ```
 
-With Peewee, we would write:
+With Peewee, we would write: 对于Peewee，我们会这样写:
 
 ```python
 reg_sales = (Order
              .select(Order.region,
-                     fn.SUM(Order.amount).alias('total_sales'))
+                     fn.SUM(Order.amount).alias(`total_sales`))
              .group_by(Order.region)
-             .cte('regional_sales'))
+             .cte(`regional_sales`))
 
 top_regions = (reg_sales
                .select(reg_sales.c.region)
                .where(reg_sales.c.total_sales > (
                    reg_sales.select(fn.SUM(reg_sales.c.total_sales) / 10)))
-               .cte('top_regions'))
+               .cte(`top_regions`))
 
 query = (Order
          .select(Order.region,
                  Order.product,
-                 fn.SUM(Order.quantity).alias('product_units'),
-                 fn.SUM(Order.amount).alias('product_sales'))
+                 fn.SUM(Order.quantity).alias(`product_units`),
+                 fn.SUM(Order.amount).alias(`product_sales`))
          .where(Order.region.in_(top_regions.select(top_regions.c.region)))
          .group_by(Order.region, Order.product)
          .with_cte(regional_sales, top_regions))
 ```
 
-### Recursive CTEs
+### Recursive CTEs 递归CTEs
 
 Peewee supports recursive CTEs. Recursive CTEs can be useful when, for example, you have a tree data-structure represented by a parent-link foreign key. Suppose, for example, that we have a hierarchy of categories for an online bookstore. We wish to generate a table showing all categories and their absolute depths, along with the path from the root to the category.
 
@@ -1855,7 +1995,7 @@ We’ll assume the following model definition, in which each category has a fore
 ```python
 class Category(Model):
     name = TextField()
-    parent = ForeignKeyField('self', backref='children', null=True)
+    parent = ForeignKeyField(`self`, backref=`children`, null=True)
 ```
 
 To list all categories along with their depth and parents, we can use a recursive CTE:
@@ -1866,17 +2006,17 @@ To list all categories along with their depth and parents, we can use a recursiv
 # Define the base case of our recursive CTE. This will be categories that
 # have a null parent foreign-key.
 Base = Category.alias()
-level = Value(1).alias('level')
-path = Base.name.alias('path')
+level = Value(1).alias(`level`)
+path = Base.name.alias(`path`)
 base_case = (Base
              .select(Base.id, Base.name, Base.parent, level, path)
              .where(Base.parent.is_null())
-             .cte('base', recursive=True))
+             .cte(`base`, recursive=True))
 
 # Define the recursive terms.
 RTerm = Category.alias()
-rlevel = (base_case.c.level + 1).alias('level')
-rpath = base_case.c.path.concat('->').concat(RTerm.name).alias('path')
+rlevel = (base_case.c.level + 1).alias(`level`)
+rpath = base_case.c.path.concat(`->`).concat(RTerm.name).alias(`path`)
 recursive = (RTerm
              .select(RTerm.id, RTerm.name, RTerm.parent, rlevel, rpath)
              .join(base_case, on=(RTerm.parent == base_case.c.id)))

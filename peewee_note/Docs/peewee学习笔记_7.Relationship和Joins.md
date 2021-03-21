@@ -2,9 +2,13 @@
 
 In this document we’ll cover how Peewee handles relationships between models.
 
-## Model definitions
+在本文档中，我们将介绍Peewee如何处理模型之间的关系。
+
+## Model definitions 模型定义
 
 We’ll use the following model definitions for our examples:
+
+我们将在示例中使用下面的模型定义:
 
 ```python
 import datetime
@@ -32,9 +36,15 @@ class Favorite(BaseModel):
 
 Peewee uses [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField) to define foreign-key relationships between models. Every foreign-key field has an implied back-reference, which is exposed as a pre-filtered [`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select) query using the provided `backref` attribute.
 
-### Creating test data
+Peewee使用[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)定义模型之间的外键关系。每个外键字段都有一个隐含的反向引用，它被公开为使用提供的`backref`属性进行预过滤的[`Select`](http://docs.peewee-orm.com/en/latest/peewee/api.html#Select)查询。
+
+
+
+### Creating test data创建测试数据
 
 To follow along with the examples, let’s populate this database with some test data:
+
+为了跟随这些示例，让我们用一些测试数据填充这个数据库:
 
 ```python
 def populate_test_data():
@@ -61,7 +71,7 @@ def populate_test_data():
             Favorite.create(user=user, tweet=tweet)
 ```
 
-This gives us the following:
+This gives us the following: 这给了我们以下信息:
 
 | User   | Tweet | Favorited by   |
 | ------ | ----- | -------------- |
@@ -75,6 +85,10 @@ Attention
 
 In the following examples we will be executing a number of queries. If you are unsure how many queries are being executed, you can add the following code, which will log all queries to the console:
 
+注意
+
+在下面的示例中，我们将执行一些查询。如果你不确定有多少查询正在执行，你可以添加以下代码，它将把所有查询记录到控制台:
+
 ```python
 import logging
 logger = logging.getLogger('peewee')
@@ -85,6 +99,10 @@ logger.setLevel(logging.DEBUG)
 Note
 
 In SQLite, foreign keys are not enabled by default. Most things, including the Peewee foreign-key API, will work fine, but ON DELETE behaviour will be ignored, even if you explicitly specify `on_delete` in your [`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField). In conjunction with the default [`AutoField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField) behaviour (where deleted record IDs can be reused), this can lead to subtle bugs. To avoid problems, I recommend that you enable foreign-key constraints when using SQLite, by setting `pragmas={'foreign_keys': 1}` when you instantiate [`SqliteDatabase`](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase).
+
+请注意
+
+在SQLite中，默认情况下外键是不启用的。大多数事情，包括Peewee外键API，将工作良好，但删除行为将被忽略，即使你明确指定`on_delete`在你的[`ForeignKeyField`](http://docs.peewee-orm.com/en/latest/peewee/api.html#ForeignKeyField)。再加上默认的[' AutoField '](http://docs.peewee-orm.com/en/latest/peewee/api.html#AutoField)行为(删除的记录id可以重用)，这可能会导致微妙的bug。为了避免出现问题，我建议在使用SQLite时启用外键约束，在实例化[' SqliteDatabase '](http://docs.peewee-orm.com/en/latest/peewee/api.html#SqliteDatabase)时设置' pragmas={'foreign_keys': 1} '。
 
 ```python
 # Ensure foreign-key constraints are enforced.
